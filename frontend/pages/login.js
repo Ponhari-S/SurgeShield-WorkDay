@@ -66,7 +66,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: 520, padding: '40px 20px 80px' }}>
+    <div className="container" style={{ maxWidth: 500, padding: '40px 20px 80px' }}>
       {/* Back Link */}
       <div style={{ marginBottom: 24 }}>
         <Link
@@ -84,31 +84,31 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      <div className="card" style={{ padding: '36px 32px' }}>
+      <div className="card" style={{ padding: '32px 28px' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div
             style={{
-              width: 50,
-              height: 50,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #ff2a5f, #8b5cf6)',
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              background: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 24,
-              margin: '0 auto 14px',
-              boxShadow: '0 0 20px var(--primary-glow)',
+              fontSize: 20,
+              margin: '0 auto 12px',
+              color: '#ffffff',
             }}
           >
             ⚡
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6, color: '#ffffff' }}>
             {mode === 'login' ? 'Sign In to SurgeShield' : 'Create an Account'}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
             {mode === 'login'
               ? 'Sign in with your designated account role to continue.'
-              : 'Register as an organizer or attendee to unlock real-time reservations.'}
+              : 'Register as an organizer or attendee to manage and book events.'}
           </p>
         </div>
 
@@ -126,11 +126,11 @@ export default function LoginPage() {
         {/* Quick Demo Access Bar */}
         <div
           style={{
-            background: 'rgba(8, 14, 28, 0.7)',
+            background: 'var(--bg-input)',
             border: '1px solid var(--border-subtle)',
-            borderRadius: 14,
-            padding: 16,
-            marginBottom: 24,
+            borderRadius: 10,
+            padding: 14,
+            marginBottom: 20,
           }}
         >
           <div
@@ -138,13 +138,13 @@ export default function LoginPage() {
               fontSize: 11,
               fontFamily: 'var(--font-mono)',
               color: 'var(--text-dim)',
-              letterSpacing: '0.1em',
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              marginBottom: 10,
+              marginBottom: 8,
               textAlign: 'center',
             }}
           >
-            ⚡ ONE-CLICK DEMO LOGINS
+            DEMO ACCOUNTS
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <button
@@ -153,12 +153,12 @@ export default function LoginPage() {
               onClick={handleQuickOrganizer}
               style={{
                 fontSize: 12,
-                padding: '10px 8px',
-                borderColor: 'rgba(139, 92, 246, 0.4)',
-                color: '#c4b5fd',
+                padding: '9px 8px',
+                borderColor: 'var(--border-subtle)',
+                color: '#93c5fd',
               }}
             >
-              🚀 Organizer Demo
+              Organizer Demo
             </button>
             <button
               type="button"
@@ -166,12 +166,12 @@ export default function LoginPage() {
               onClick={handleQuickParticipant}
               style={{
                 fontSize: 12,
-                padding: '10px 8px',
-                borderColor: 'rgba(0, 242, 254, 0.4)',
-                color: '#38bdf8',
+                padding: '9px 8px',
+                borderColor: 'var(--border-subtle)',
+                color: '#93c5fd',
               }}
             >
-              🎟️ Participant Demo
+              Participant Demo
             </button>
           </div>
         </div>
@@ -180,10 +180,10 @@ export default function LoginPage() {
         <div
           style={{
             display: 'flex',
-            background: 'rgba(8, 14, 28, 0.9)',
-            borderRadius: 12,
-            padding: 4,
-            marginBottom: 24,
+            background: 'var(--bg-input)',
+            borderRadius: 8,
+            padding: 3,
+            marginBottom: 20,
             border: '1px solid var(--border-subtle)',
           }}
         >
@@ -195,15 +195,15 @@ export default function LoginPage() {
             }}
             style={{
               flex: 1,
-              padding: '10px 0',
-              background: mode === 'login' ? 'rgba(255, 42, 95, 0.2)' : 'transparent',
-              border: mode === 'login' ? '1px solid var(--primary-neon)' : '1px solid transparent',
+              padding: '8px 0',
+              background: mode === 'login' ? 'var(--primary)' : 'transparent',
+              border: 'none',
               color: mode === 'login' ? '#ffffff' : 'var(--text-muted)',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 700,
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}
           >
             Sign In
@@ -216,15 +216,15 @@ export default function LoginPage() {
             }}
             style={{
               flex: 1,
-              padding: '10px 0',
-              background: mode === 'register' ? 'rgba(255, 42, 95, 0.2)' : 'transparent',
-              border: mode === 'register' ? '1px solid var(--primary-neon)' : '1px solid transparent',
+              padding: '8px 0',
+              background: mode === 'register' ? 'var(--primary)' : 'transparent',
+              border: 'none',
               color: mode === 'register' ? '#ffffff' : 'var(--text-muted)',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 700,
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}
           >
             Sign Up
@@ -233,29 +233,28 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           {/* Permanent Role Selector */}
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
-              <label style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>
-                Account Role (Non-Transferable)
+              <label style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>
+                Account Role (Fixed)
               </label>
-              <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>Fixed per account</span>
+              <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>Non-transferable</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div
                 onClick={() => setRole('participant')}
                 style={{
-                  padding: '14px 12px',
-                  borderRadius: 12,
+                  padding: '12px',
+                  borderRadius: 8,
                   cursor: 'pointer',
-                  border: role === 'participant' ? '1.5px solid var(--cyan-neon)' : '1px solid var(--border-subtle)',
-                  background: role === 'participant' ? 'rgba(0, 242, 254, 0.08)' : 'rgba(8, 14, 28, 0.5)',
-                  boxShadow: role === 'participant' ? '0 0 14px rgba(0, 242, 254, 0.2)' : 'none',
-                  transition: 'all 0.2s ease',
+                  border: role === 'participant' ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
+                  background: role === 'participant' ? 'rgba(37, 99, 235, 0.1)' : 'var(--bg-input)',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <div style={{ fontSize: 20, marginBottom: 4 }}>🎟️</div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: '#ffffff' }}>Participant</div>
+                <div style={{ fontSize: 18, marginBottom: 2 }}>🎟️</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: '#ffffff' }}>Participant</div>
                 <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
                   Book event seats
                 </div>
@@ -264,17 +263,16 @@ export default function LoginPage() {
               <div
                 onClick={() => setRole('organizer')}
                 style={{
-                  padding: '14px 12px',
-                  borderRadius: 12,
+                  padding: '12px',
+                  borderRadius: 8,
                   cursor: 'pointer',
-                  border: role === 'organizer' ? '1.5px solid var(--violet-neon)' : '1px solid var(--border-subtle)',
-                  background: role === 'organizer' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(8, 14, 28, 0.5)',
-                  boxShadow: role === 'organizer' ? '0 0 14px rgba(139, 92, 246, 0.2)' : 'none',
-                  transition: 'all 0.2s ease',
+                  border: role === 'organizer' ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
+                  background: role === 'organizer' ? 'rgba(37, 99, 235, 0.1)' : 'var(--bg-input)',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <div style={{ fontSize: 20, marginBottom: 4 }}>🚀</div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: '#ffffff' }}>Organizer</div>
+                <div style={{ fontSize: 18, marginBottom: 2 }}>🚀</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: '#ffffff' }}>Organizer</div>
                 <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
                   Create &amp; host events
                 </div>
@@ -315,7 +313,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <button className="btn" type="submit" style={{ marginTop: 8 }}>
+          <button className="btn" type="submit" style={{ marginTop: 6 }}>
             {mode === 'login'
               ? `Sign In as ${role === 'organizer' ? 'Organizer' : 'Participant'} →`
               : `Register as ${role === 'organizer' ? 'Organizer' : 'Participant'} →`}

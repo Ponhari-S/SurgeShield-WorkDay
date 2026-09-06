@@ -69,9 +69,9 @@ function AppNavbar() {
                       letterSpacing: '0.05em',
                       padding: '1px 7px',
                       borderRadius: 4,
-                      background: isOrganizer ? 'rgba(139, 92, 246, 0.2)' : 'rgba(0, 242, 254, 0.15)',
-                      color: isOrganizer ? '#c4b5fd' : '#38bdf8',
-                      border: `1px solid ${isOrganizer ? 'rgba(139, 92, 246, 0.4)' : 'rgba(0, 242, 254, 0.3)'}`,
+                      background: isOrganizer ? 'rgba(37, 99, 235, 0.18)' : 'rgba(30, 41, 59, 0.6)',
+                      color: isOrganizer ? '#93c5fd' : '#94a3b8',
+                      border: `1px solid ${isOrganizer ? 'rgba(37, 99, 235, 0.4)' : 'rgba(148, 163, 184, 0.25)'}`,
                       marginTop: 2,
                     }}
                   >

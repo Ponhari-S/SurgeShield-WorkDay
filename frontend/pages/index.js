@@ -291,7 +291,7 @@ export default function Home() {
                 <div className="capacity-container">
                   <div className="capacity-info">
                     <span className="capacity-label">Seat Availability</span>
-                    <span className="capacity-num" style={{ color: available > 0 ? '#38bdf8' : '#ef4444' }}>
+                    <span className="capacity-num" style={{ color: available > 0 ? '#3b82f6' : '#ef4444' }}>
                       {available} / {total} free
                     </span>
                   </div>

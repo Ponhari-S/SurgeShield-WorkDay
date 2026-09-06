@@ -92,7 +92,7 @@ export default function CreateEvent() {
             Organizer Account Required
           </h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: 15, lineHeight: 1.6 }}>
-            You are currently signed in as <strong style={{ color: '#ffffff' }}>{user.name}</strong> with a <span style={{ color: '#38bdf8', fontWeight: 700 }}>Participant</span> account.
+            You are currently signed in as <strong style={{ color: '#ffffff' }}>{user.name}</strong> with a <span style={{ color: '#3b82f6', fontWeight: 700 }}>Participant</span> account.
             Participant accounts cannot publish events. To create and host events, please sign in or register with an <strong>Organizer Account</strong>.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -161,12 +161,12 @@ export default function CreateEvent() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'rgba(139, 92, 246, 0.15)',
-              border: '1px solid rgba(139, 92, 246, 0.35)',
+              background: 'rgba(37, 99, 235, 0.12)',
+              border: '1px solid rgba(37, 99, 235, 0.3)',
               padding: '6px 14px',
               borderRadius: 20,
               fontSize: 12,
-              color: '#c4b5fd',
+              color: '#93c5fd',
             }}
           >
             <span>HOST: <strong>{user.name}</strong></span>
@@ -214,7 +214,7 @@ export default function CreateEvent() {
                 className="custom-checkbox"
                 style={
                   form.isVirtual
-                    ? { borderColor: 'var(--violet-neon)', background: 'rgba(139, 92, 246, 0.12)' }
+                    ? { borderColor: 'var(--primary)', background: 'rgba(37, 99, 235, 0.1)' }
                     : {}
                 }
               >
@@ -260,7 +260,7 @@ export default function CreateEvent() {
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <label style={{ margin: 0 }}>Total Seats Capacity (Max 1000) *</label>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#38bdf8' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#3b82f6' }}>
                   {form.totalSeats} Seats
                 </span>
               </div>
@@ -272,7 +272,7 @@ export default function CreateEvent() {
                 value={form.totalSeats}
                 onChange={(e) => update('totalSeats', parseInt(e.target.value, 10))}
                 style={{
-                  accentColor: '#ff2a5f',
+                  accentColor: '#2563eb',
                   cursor: 'pointer',
                   padding: 0,
                   height: 8,
@@ -372,7 +372,7 @@ export default function CreateEvent() {
                 <div className="capacity-container">
                   <div className="capacity-info">
                     <span className="capacity-label">Seat Availability</span>
-                    <span className="capacity-num" style={{ color: '#38bdf8' }}>
+                    <span className="capacity-num" style={{ color: '#3b82f6' }}>
                       {form.totalSeats} / {form.totalSeats} free
                     </span>
                   </div>
@@ -435,11 +435,11 @@ export default function CreateEvent() {
                     key={idx}
                     style={{
                       aspectRatio: '1',
-                      background: isVip ? '#292014' : isPrem ? '#1d1733' : '#0f172a',
+                      background: isVip ? '#172554' : isPrem ? '#1e293b' : '#0f172a',
                       border: `1px solid ${
-                        isVip ? 'rgba(245, 158, 11, 0.4)' : isPrem ? 'rgba(139, 92, 246, 0.4)' : 'rgba(255, 255, 255, 0.1)'
+                        isVip ? 'rgba(59, 130, 246, 0.4)' : isPrem ? 'rgba(148, 163, 184, 0.3)' : 'rgba(255, 255, 255, 0.08)'
                       }`,
-                      color: isVip ? '#fbbf24' : isPrem ? '#c4b5fd' : '#64748b',
+                      color: isVip ? '#93c5fd' : isPrem ? '#cbd5e1' : '#64748b',
                       borderRadius: 4,
                       fontSize: 9,
                       fontFamily: 'var(--font-mono)',

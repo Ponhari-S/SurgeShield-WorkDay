@@ -225,31 +225,22 @@ export default function EventDetail() {
       <div className="seat-arena-card">
         {/* Stage Perspective Display */}
         <div className="stage-wrapper">
-          <div className="stage-screen">⚡ STAGE / SCREEN FRONT ⚡</div>
-          <div className="stage-beam" />
+          <div className="stage-screen">STAGE / SCREEN FRONT</div>
         </div>
 
         {/* Legend */}
         <div className="seat-legend">
           <div className="legend-chip">
-            <span className="legend-dot" style={{ background: 'var(--seat-vip-bg)', border: '1px solid var(--seat-vip-border)' }} />
-            <span>VIP Front ($95)</span>
+            <span className="legend-dot" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.15)' }} />
+            <span>Available</span>
           </div>
           <div className="legend-chip">
-            <span className="legend-dot" style={{ background: 'var(--seat-prem-bg)', border: '1px solid var(--seat-prem-border)' }} />
-            <span>Prime Tier ($65)</span>
-          </div>
-          <div className="legend-chip">
-            <span className="legend-dot" style={{ background: 'var(--seat-gen-bg)', border: '1px solid var(--seat-gen-border)' }} />
-            <span>General ($35)</span>
-          </div>
-          <div className="legend-chip">
-            <span className="legend-dot" style={{ background: 'linear-gradient(135deg, #ff2a5f, #8b5cf6)' }} />
+            <span className="legend-dot" style={{ background: '#2563eb' }} />
             <span>Selected</span>
           </div>
           <div className="legend-chip">
-            <span className="legend-dot" style={{ background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.05)', opacity: 0.5 }} />
-            <span>Booked / Locked</span>
+            <span className="legend-dot" style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.05)', opacity: 0.5 }} />
+            <span>Booked</span>
           </div>
         </div>
 
@@ -340,11 +331,11 @@ export default function EventDetail() {
               style={{
                 fontSize: 11,
                 fontFamily: 'var(--font-mono)',
-                background: 'rgba(0, 242, 254, 0.1)',
-                color: '#38bdf8',
+                background: 'rgba(37, 99, 235, 0.1)',
+                color: '#60a5fa',
                 padding: '4px 10px',
                 borderRadius: 6,
-                border: '1px solid rgba(0, 242, 254, 0.3)',
+                border: '1px solid rgba(37, 99, 235, 0.3)',
               }}
             >
               🔒 Idempotent Key: {idempotencyKey.slice(0, 14)}...
@@ -354,9 +345,9 @@ export default function EventDetail() {
           {/* Verified Attendee Badge (Eliminates manual name and email typing!) */}
           <div
             style={{
-              background: 'rgba(8, 14, 28, 0.65)',
+              background: 'var(--bg-input)',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 14,
+              borderRadius: 12,
               padding: '16px 20px',
               marginBottom: 20,
               display: 'flex',
@@ -379,15 +370,15 @@ export default function EventDetail() {
                 style={{
                   fontSize: 11,
                   fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   padding: '3px 8px',
                   borderRadius: 6,
-                  background: user.role === 'organizer' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(0, 242, 254, 0.15)',
-                  color: user.role === 'organizer' ? '#c4b5fd' : '#38bdf8',
-                  border: `1px solid ${user.role === 'organizer' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(0, 242, 254, 0.3)'}`,
+                  background: user.role === 'organizer' ? 'rgba(37, 99, 235, 0.15)' : 'rgba(15, 23, 42, 0.6)',
+                  color: user.role === 'organizer' ? '#93c5fd' : '#cbd5e1',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
-                {user.role === 'organizer' ? '⚡ ORGANIZER' : '🎟️ PARTICIPANT'}
+                {user.role === 'organizer' ? 'ORGANIZER' : 'PARTICIPANT'}
               </span>
               <span className="ticker-pill" style={{ padding: '3px 8px' }}>
                 <span className="pulse-dot" />
@@ -429,7 +420,7 @@ export default function EventDetail() {
         <div className="modal-overlay" onClick={() => setBooking(null)}>
           <div className="ticket-pass" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-header">
-              <div className="ticket-brand">⚡ SURGESHIELD ADMISSION PASS</div>
+              <div className="ticket-brand">SURGESHIELD ADMISSION PASS</div>
               <div className="ticket-event-name">{event.name}</div>
             </div>
 
@@ -441,7 +432,7 @@ export default function EventDetail() {
                 </div>
                 <div className="ticket-col" style={{ textAlign: 'right' }}>
                   <label>Status</label>
-                  <span style={{ color: '#34d399' }}>● CONFIRMED</span>
+                  <span style={{ color: '#3b82f6' }}>● CONFIRMED</span>
                 </div>
               </div>
 
@@ -452,7 +443,7 @@ export default function EventDetail() {
                 </div>
                 <div className="ticket-col" style={{ textAlign: 'right' }}>
                   <label>Seats Reserved</label>
-                  <span style={{ color: '#ff2a5f' }}>
+                  <span style={{ color: '#2563eb' }}>
                     {booking.seatIds ? booking.seatIds.length : booking.seats ? booking.seats.length : selectedSeats.length} Seat(s)
                   </span>
                 </div>
