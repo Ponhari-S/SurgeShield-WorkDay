@@ -6,7 +6,7 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>SurgeShield | High-Concurrency Event Ticketing</title>
+        <title>SurgeShield</title>
         <meta
           name="description"
           content="Enterprise-grade flash-sale event ticketing with atomic concurrency locks and real-time seat reservation."
@@ -15,30 +15,6 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>" />
       </Head>
 
-      {/* Futuristic System Ticker */}
-      <div className="system-ticker">
-        <div className="ticker-left">
-          <div className="ticker-pill">
-            <span className="pulse-dot" />
-            <span>SYSTEM SECURE</span>
-          </div>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span>🛡️</span>
-            <span>ATOMIC MUTEX ACTIVE</span>
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span>⚡</span>
-            <span>SWARM CLUSTER: HEALTHY</span>
-          </span>
-        </div>
-        <div className="ticker-metrics">
-          <span>LATENCY: <strong>12ms</strong></span>
-          <span>LOCK ENGINE: <strong>SERIALIZABLE</strong></span>
-          <span>RACE SAFETY: <strong>100%</strong></span>
-        </div>
-      </div>
-
-      {/* Main Glass Navbar */}
       <nav className="navbar">
         <div className="nav-container">
           <Link href="/" className="logo">
@@ -61,23 +37,14 @@ export default function App({ Component, pageProps }) {
         </div>
       </nav>
 
-      {/* Content View */}
       <main className="main-wrapper">
         <Component {...pageProps} />
       </main>
 
-      {/* High-Tech Footer */}
       <footer className="footer">
         <div className="footer-container">
           <div>
             <span style={{ fontWeight: 700, color: '#ffffff' }}>SurgeShield Infrastructure</span>
-            <span style={{ color: 'var(--text-dim)', marginLeft: 8 }}>— High-concurrency event registration architecture</span>
-          </div>
-          <div className="footer-tags">
-            <span className="footer-tag">POSTGRESQL 16</span>
-            <span className="footer-tag">ROW-LEVEL LOCKS</span>
-            <span className="footer-tag">TRAEFIK INGRESS</span>
-            <span className="footer-tag">AUTOSCALED</span>
           </div>
         </div>
       </footer>
