@@ -1,6 +1,7 @@
 const db = require('../db');
 
 const redisClient = require('../redis');
+const notificationService = require('./notificationService');
 
 // DUAL-TIER CONCURRENCY CONTROL (Zero Overbooking Guarantee):
 // Tier 1 (In-Memory Redis Lock): Sub-2ms fast-path rejection for competing seat clicks.
@@ -15,10 +16,6 @@ async function createBooking({ eventId, userName, userEmail, seatIds, idempotenc
   for (const seatId of seatIds) {
     const locked = await redisClient.acquireSeatLock(eventId, seatId, userId, 30);
     if (!locked) {
-      // Release any locks acquired so far in this loop
-      for (const acquired of acquiredLocks) {
-        await redisClient.releaseSeatLock(eventId, acquired.seatId, userId);
-      }
       const err = new Error(`Seat ${seatId} was just claimed by another user`);
       err.code = 'SEATS_UNAVAILABLE';
       throw err;
@@ -60,7 +57,7 @@ async function createBooking({ eventId, userName, userEmail, seatIds, idempotenc
     );
     const booking = bookingResult.rows[0];
 
-    // 3. Atomic Seats Status Update
+    // 3. Atomic Seats Status Update & Verification
     const updateResult = await client.query(
       `UPDATE seats 
        SET status = 'booked', booking_id = $1
@@ -69,10 +66,23 @@ async function createBooking({ eventId, userName, userEmail, seatIds, idempotenc
     );
 
     if (updateResult.rowCount !== seatIds.length) {
-      const err = new Error('Race condition detected during seat update');
+      const err = new Error('One or more seats became unavailable during transaction execution');
       err.code = 'SEATS_UNAVAILABLE';
       throw err;
     }
+
+    // 4. Transactional Outbox Pattern: Insert Pending Notification Job
+    await notificationService.createOutboxNotification(client, {
+      bookingId: booking.id,
+      type: 'EMAIL_AND_CALENDAR',
+      payload: {
+        eventId,
+        userName,
+        userEmail,
+        seatIds,
+        timestamp: new Date().toISOString()
+      }
+    });
 
     await client.query('COMMIT');
 

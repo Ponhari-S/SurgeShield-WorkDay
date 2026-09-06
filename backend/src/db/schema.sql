@@ -40,5 +40,18 @@ CREATE TABLE IF NOT EXISTS seats (
 --   4. seat booking should use "SELECT ... FOR UPDATE" / a serializable transaction
 --      to prevent overbooking under concurrent requests for the last seat.
 
+CREATE TABLE IF NOT EXISTS outbox_notifications (
+    id              SERIAL PRIMARY KEY,
+    booking_id      INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+    type            VARCHAR(50) NOT NULL DEFAULT 'EMAIL_AND_CALENDAR',
+    payload         JSONB NOT NULL,
+    status          VARCHAR(20) NOT NULL DEFAULT 'pending',
+    retry_count     INTEGER DEFAULT 0,
+    error_message   TEXT,
+    created_at      TIMESTAMP DEFAULT NOW(),
+    processed_at    TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_seats_event_id ON seats(event_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_event_id ON bookings(event_id);
+CREATE INDEX IF NOT EXISTS idx_outbox_status ON outbox_notifications(status);

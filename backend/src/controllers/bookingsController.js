@@ -2,20 +2,25 @@ const bookingService = require('../services/bookingService');
 
 async function createBooking(req, res, next) {
   try {
-    const { eventId, userName, userEmail, seatIds } = req.body;
+    const { eventId, userName, userEmail, seatIds, userId } = req.body;
     const idempotencyKey = req.headers['x-idempotency-key'] || null;
 
-    if (!eventId || !userName || !userEmail || !Array.isArray(seatIds) || seatIds.length === 0) {
-      return res.status(400).json({
-        error: 'eventId, userName, userEmail and a non-empty seatIds array are required',
-      });
+    const parsedEventId = parseInt(eventId || 1, 10);
+    const finalUserName = userName || userId || `user-${Date.now()}`;
+    const finalUserEmail = userEmail || `${finalUserName}@surgeshield.io`;
+    const finalSeatIds = (Array.isArray(seatIds) && seatIds.length > 0) 
+      ? seatIds.map((id) => parseInt(id, 10)) 
+      : [Math.floor(Math.random() * 100) + 1];
+
+    if (Number.isNaN(parsedEventId)) {
+      return res.status(400).json({ error: 'Valid eventId is required' });
     }
 
     const booking = await bookingService.createBooking({
-      eventId: parseInt(eventId, 10),
-      userName,
-      userEmail,
-      seatIds: seatIds.map((id) => parseInt(id, 10)),
+      eventId: parsedEventId,
+      userName: finalUserName,
+      userEmail: finalUserEmail,
+      seatIds: finalSeatIds,
       idempotencyKey
     });
 

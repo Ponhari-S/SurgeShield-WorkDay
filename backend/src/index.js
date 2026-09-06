@@ -73,6 +73,7 @@ app.get('/metrics', async (req, res) => {
 
 app.use('/api/events', eventsRouter);
 app.use('/api/bookings', bookingsRouter);
+app.use('/api/registrations', bookingsRouter);
 
 app.use(errorHandler);
 

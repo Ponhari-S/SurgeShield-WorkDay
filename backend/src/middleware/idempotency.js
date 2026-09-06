@@ -9,7 +9,8 @@ async function idempotencyMiddleware(req, res, next) {
     return next();
   }
 
-  const redisKey = `idempotency:${idempotencyKey}`;
+  const clientScope = req.headers['x-user-email'] || req.body?.userEmail || req.ip || 'global';
+  const redisKey = `idempotency:${clientScope}:${idempotencyKey}`;
 
   try {
     // 1. Check if key exists in Redis

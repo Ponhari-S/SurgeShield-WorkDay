@@ -87,7 +87,7 @@ services:
   # ----------------------------------------------------
   api:
     build:
-      context: ./stubs/api
+      context: ./backend
     image: surgeshield/api:latest
     environment:
       PORT: 3000
@@ -113,10 +113,12 @@ services:
   # ----------------------------------------------------
   worker:
     build:
-      context: ./stubs/worker
+      context: ./backend
+    command: node src/worker.js
     image: surgeshield/worker:latest
     environment:
       PORT: 3001
+      DATABASE_URL: postgres://surgeshield:surgeshield_pass@postgres:5432/surgeshield_db
       REDIS_URL: redis://redis:6379
     networks:
       - surgeshield_net

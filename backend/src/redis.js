@@ -4,13 +4,24 @@ require('dotenv').config();
 let redis = null;
 let isConnected = false;
 
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const parsedUrl = new URL(redisUrl);
+const redisConnectionOptions = {
+  host: parsedUrl.hostname || 'localhost',
+  port: parseInt(parsedUrl.port || '6379', 10),
+  username: parsedUrl.username || undefined,
+  password: parsedUrl.password || undefined,
+  maxRetriesPerRequest: null, // Required by BullMQ
+  retryStrategy(times) {
+    return Math.min(times * 100, 3000); // Continuous backoff capped at 3s
+  }
+};
+
 try {
-  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
   redis = new Redis(redisUrl, {
     maxRetriesPerRequest: 1,
     retryStrategy(times) {
-      if (times > 3) return null; // stop retrying after 3 attempts in standalone mode
-      return Math.min(times * 100, 2000);
+      return Math.min(times * 100, 3000);
     }
   });
 
@@ -29,6 +40,7 @@ try {
 
 module.exports = {
   redis,
+  redisConnectionOptions,
   isReady: () => isConnected && redis && redis.status === 'ready',
   
   // Tier 1 Fast-Path Redis Lock for Specific Seat
