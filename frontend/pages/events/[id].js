@@ -2,15 +2,15 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { useAuth } from '../../lib/auth';
 
 export default function EventDetail() {
   const router = useRouter();
   const { id } = router.query;
+  const { user } = useAuth();
 
   const [event, setEvent] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [booking, setBooking] = useState(null);
@@ -72,14 +72,19 @@ export default function EventDetail() {
 
   async function handleBooking(e) {
     e.preventDefault();
+    if (!user) {
+      router.push(`/login?redirect=/events/${id}`);
+      return;
+    }
+
     setError('');
     setSubmitting(true);
     try {
       const result = await api.createBooking(
         {
           eventId: parseInt(id, 10),
-          userName,
-          userEmail,
+          userName: user.name,
+          userEmail: user.email,
           seatIds: selectedSeats,
         },
         idempotencyKey
@@ -312,72 +317,112 @@ export default function EventDetail() {
       </div>
 
       {/* Concurrency Safe Checkout Form */}
-      <div className="form-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ fontSize: 20, fontWeight: 800 }}>Complete Admission Registration</h3>
-          <span
+      {!user ? (
+        <div className="form-card" style={{ textAlign: 'center', padding: '40px 24px' }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>🔒</div>
+          <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Authentication Required to Book Seats</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: 14, maxWidth: 500, margin: '0 auto 24px' }}>
+            Please sign in as a Participant or Organizer. Since your account is verified, you won't need to manually enter your name or email during checkout.
+          </p>
+          <Link
+            href={`/login?redirect=/events/${id}`}
+            className="btn"
+            style={{ width: 'auto', display: 'inline-flex', padding: '12px 28px' }}
+          >
+            Sign In to Continue Booking →
+          </Link>
+        </div>
+      ) : (
+        <div className="form-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+            <h3 style={{ fontSize: 20, fontWeight: 800 }}>Confirm Admission Reservation</h3>
+            <span
+              style={{
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                background: 'rgba(0, 242, 254, 0.1)',
+                color: '#38bdf8',
+                padding: '4px 10px',
+                borderRadius: 6,
+                border: '1px solid rgba(0, 242, 254, 0.3)',
+              }}
+            >
+              🔒 Idempotent Key: {idempotencyKey.slice(0, 14)}...
+            </span>
+          </div>
+
+          {/* Verified Attendee Badge (Eliminates manual name and email typing!) */}
+          <div
             style={{
-              fontSize: 11,
-              fontFamily: 'var(--font-mono)',
-              background: 'rgba(0, 242, 254, 0.1)',
-              color: '#38bdf8',
-              padding: '4px 10px',
-              borderRadius: 6,
-              border: '1px solid rgba(0, 242, 254, 0.3)',
+              background: 'rgba(8, 14, 28, 0.65)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 14,
+              padding: '16px 20px',
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
             }}
           >
-            🔒 Idempotent Key: {idempotencyKey.slice(0, 14)}...
-          </span>
-        </div>
-
-        <p style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: 14 }}>
-          {selectedSeats.length > 0
-            ? `Securing ${selectedSeats.length} seat(s) with atomic row-level mutex locks. Fill in attendee details below to finalize.`
-            : 'Select at least one seat from the map above to unlock booking.'}
-        </p>
-
-        <form onSubmit={handleBooking}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18 }}>
-            <div className="form-group">
-              <label>Full Attendee Name *</label>
-              <input
-                required
-                placeholder="e.g. Elena Rostova"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-              />
+            <div>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+                CONFIRMED ATTENDEE (PRE-AUTHENTICATED)
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', marginTop: 3 }}>
+                {user.name} <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>({user.email})</span>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Email Address *</label>
-              <input
-                type="email"
-                required
-                placeholder="e.g. elena@domain.com"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 700,
+                  padding: '3px 8px',
+                  borderRadius: 6,
+                  background: user.role === 'organizer' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(0, 242, 254, 0.15)',
+                  color: user.role === 'organizer' ? '#c4b5fd' : '#38bdf8',
+                  border: `1px solid ${user.role === 'organizer' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(0, 242, 254, 0.3)'}`,
+                }}
+              >
+                {user.role === 'organizer' ? '⚡ ORGANIZER' : '🎟️ PARTICIPANT'}
+              </span>
+              <span className="ticker-pill" style={{ padding: '3px 8px' }}>
+                <span className="pulse-dot" />
+                <span>VERIFIED</span>
+              </span>
             </div>
           </div>
 
-          <button
-            className="btn"
-            type="submit"
-            disabled={submitting || selectedSeats.length === 0}
-            style={{ marginTop: 8 }}
-          >
-            {submitting ? (
-              <>
-                <span className="pulse-dot" />
-                <span>Executing Atomic Reservation...</span>
-              </>
-            ) : selectedSeats.length === 0 ? (
-              'Select Seats on Map Above to Proceed'
-            ) : (
-              `Lock & Reserve ${selectedSeats.length} Seat(s) ($${totalPrice}) →`
-            )}
-          </button>
-        </form>
-      </div>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 20, fontSize: 14 }}>
+            {selectedSeats.length > 0
+              ? `Securing ${selectedSeats.length} seat(s) directly under ${user.name} with atomic row-level mutex locks.`
+              : 'Select at least one seat from the map above to unlock booking.'}
+          </p>
+
+          <form onSubmit={handleBooking}>
+            <button
+              className="btn"
+              type="submit"
+              disabled={submitting || selectedSeats.length === 0}
+              style={{ marginTop: 4 }}
+            >
+              {submitting ? (
+                <>
+                  <span className="pulse-dot" />
+                  <span>Executing Atomic Reservation...</span>
+                </>
+              ) : selectedSeats.length === 0 ? (
+                'Select Seats on Map Above to Proceed'
+              ) : (
+                `Lock & Reserve ${selectedSeats.length} Seat(s) for ${user.name} ($${totalPrice}) →`
+              )}
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Digital Ticket Pass Modal */}
       {booking && (
@@ -392,7 +437,7 @@ export default function EventDetail() {
               <div className="ticket-row">
                 <div className="ticket-col">
                   <label>Attendee</label>
-                  <span>{booking.user_name || userName}</span>
+                  <span>{booking.user_name || user?.name || 'Verified Attendee'}</span>
                 </div>
                 <div className="ticket-col" style={{ textAlign: 'right' }}>
                   <label>Status</label>

@@ -2,9 +2,12 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { api } from '../lib/api';
+import { useAuth } from '../lib/auth';
 
 export default function CreateEvent() {
   const router = useRouter();
+  const { user, isOrganizer, switchRole } = useAuth();
+
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -46,6 +49,74 @@ export default function CreateEvent() {
     }
   }
 
+  // 1. Unauthenticated Gate
+  if (!user) {
+    return (
+      <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
+        <div className="card" style={{ padding: '48px 32px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🚀</div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
+            Organizer Authentication Required
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
+            Only verified Event Organizers have permissions to provision event venues and generate atomic concurrency seat maps.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link
+              href="/login?redirect=/create-event"
+              className="btn"
+              style={{ width: 'auto', padding: '12px 28px' }}
+            >
+              Sign In as Organizer →
+            </Link>
+            <Link
+              href="/"
+              className="btn btn-secondary"
+              style={{ width: 'auto', padding: '12px 24px' }}
+            >
+              Explore Events
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Participant Role Restriction Gate
+  if (!isOrganizer) {
+    return (
+      <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
+        <div className="card" style={{ padding: '48px 32px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🎟️</div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
+            Organizer Permission Required
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: 15, lineHeight: 1.6 }}>
+            You are currently signed in as <strong style={{ color: '#ffffff' }}>{user.name}</strong> with the <span style={{ color: '#38bdf8' }}>Participant</span> role.
+            Participants are designated to book seats. To publish and host events, please switch your profile to the Organizer role.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => switchRole('organizer')}
+              className="btn"
+              style={{ width: 'auto', padding: '12px 28px' }}
+            >
+              ⚡ Switch to Organizer Role &amp; Host Event
+            </button>
+            <Link
+              href="/"
+              className="btn btn-secondary"
+              style={{ width: 'auto', padding: '12px 24px' }}
+            >
+              Back to Events
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Organizer Studio
   return (
     <div className="container" style={{ maxWidth: 1100 }}>
       {/* Back Link */}
@@ -66,11 +137,30 @@ export default function CreateEvent() {
       </div>
 
       <div className="hero-header" style={{ marginBottom: 32 }}>
-        <span className="hero-pill">
-          <span className="pulse-dot" />
-          <span>ORGANIZER STUDIO</span>
-        </span>
-        <h1 className="hero-title">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <span className="hero-pill">
+            <span className="pulse-dot" />
+            <span>ORGANIZER STUDIO</span>
+          </span>
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'rgba(139, 92, 246, 0.15)',
+              border: '1px solid rgba(139, 92, 246, 0.35)',
+              padding: '6px 14px',
+              borderRadius: 20,
+              fontSize: 12,
+              color: '#c4b5fd',
+            }}
+          >
+            <span>HOST: <strong>{user.name}</strong></span>
+          </div>
+        </div>
+
+        <h1 className="hero-title" style={{ marginTop: 12 }}>
           Launch New Event <span className="gradient-text">&amp; Seat Grid</span>
         </h1>
         <p className="hero-subtitle">
