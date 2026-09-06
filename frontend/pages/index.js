@@ -64,7 +64,9 @@ export default function Home() {
       <div className="hero-wrapper">
         <div className="hero-pill">
           <span className="pulse-dot" />
-          <span>REAL-TIME SEAT ENGINE</span>
+          <span>REAL-TIME SEAT ENGINE
+
+          </span>
         </div>
         <h1 className="hero-title">
           <span className="gradient-text">Live Events</span>
@@ -245,13 +247,13 @@ export default function Home() {
 
           const formattedDate = event.event_date
             ? new Date(event.event_date).toLocaleString(undefined, {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
             : 'Date TBA';
 
           return (
@@ -259,9 +261,8 @@ export default function Home() {
               <div>
                 <div className="card-header">
                   <span
-                    className={`badge ${
-                      event.is_virtual ? 'badge-virtual' : 'badge-physical'
-                    }`}
+                    className={`badge ${event.is_virtual ? 'badge-virtual' : 'badge-physical'
+                      }`}
                   >
                     {event.is_virtual ? '🌐 Virtual Stream' : '📍 In-Person Arena'}
                   </span>
