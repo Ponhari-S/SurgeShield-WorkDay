@@ -64,46 +64,14 @@ export default function Home() {
       <div className="hero-wrapper">
         <div className="hero-pill">
           <span className="pulse-dot" />
-          <span>REAL-TIME SEAT ENGINE & SURGE PROTECTION</span>
+          <span>REAL-TIME SEAT ENGINE</span>
         </div>
         <h1 className="hero-title">
-          Live Events with <span className="gradient-text">Zero Race Conditions.</span>
+          <span className="gradient-text">Live Events</span>
         </h1>
         <p className="hero-subtitle">
-          Book high-demand events with atomic database concurrency locks, sub-millisecond seat updates, and instant digital boarding passes.
+          Book Events, Check Seat Availability.
         </p>
-
-        {/* High-Tech Capability Ribbon */}
-        <div className="stats-ribbon">
-          <div className="stat-box">
-            <div className="stat-icon">🛡️</div>
-            <div>
-              <div className="stat-val">100% ATOMIC</div>
-              <div className="stat-label">Row-Level DB Locks</div>
-            </div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-icon">⚡</div>
-            <div>
-              <div className="stat-val">&lt; 15ms</div>
-              <div className="stat-label">Instant Seat Reservation</div>
-            </div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-icon">🌐</div>
-            <div>
-              <div className="stat-val">SWARM READY</div>
-              <div className="stat-label">Autoscaled Traefik Ingress</div>
-            </div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-icon">🎫</div>
-            <div>
-              <div className="stat-val">PASS GEN</div>
-              <div className="stat-label">Digital Barcode Pass</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Toolbar: Search, Filters & Sorting */}
