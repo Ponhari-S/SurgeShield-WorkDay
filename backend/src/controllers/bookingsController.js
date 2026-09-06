@@ -3,6 +3,7 @@ const bookingService = require('../services/bookingService');
 async function createBooking(req, res, next) {
   try {
     const { eventId, userName, userEmail, seatIds } = req.body;
+    const idempotencyKey = req.headers['x-idempotency-key'] || null;
 
     if (!eventId || !userName || !userEmail || !Array.isArray(seatIds) || seatIds.length === 0) {
       return res.status(400).json({
@@ -15,6 +16,7 @@ async function createBooking(req, res, next) {
       userName,
       userEmail,
       seatIds: seatIds.map((id) => parseInt(id, 10)),
+      idempotencyKey
     });
 
     res.status(201).json(booking);

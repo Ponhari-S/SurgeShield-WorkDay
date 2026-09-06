@@ -18,10 +18,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     event_id        INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     user_name       VARCHAR(255) NOT NULL,
     user_email      VARCHAR(255) NOT NULL,
+    idempotency_key VARCHAR(255) UNIQUE,
     status          VARCHAR(20) NOT NULL DEFAULT 'confirmed',
-    -- status: confirmed | cancelled  (later: pending, failed, refunded etc.)
-    -- EXTENSION POINT: add idempotency_key VARCHAR UNIQUE column here later
-    -- to make POST /bookings safe to retry (duplicate-request handling).
     created_at      TIMESTAMP DEFAULT NOW()
 );
 

@@ -9,10 +9,11 @@
     "migrate": "node -e \"require('fs'); const {pool}=require('./src/db'); const fs=require('fs'); const sql=fs.readFileSync('./src/db/schema.sql','utf8'); pool.query(sql).then(()=>{console.log('Migration complete');process.exit(0);}).catch(e=>{console.error(e);process.exit(1);});\""
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "pg": "^8.11.5",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ioredis": "^5.3.2",
+    "pg": "^8.11.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
