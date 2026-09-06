@@ -45,9 +45,9 @@ export default function LoginPage() {
     try {
       let loggedUser;
       if (mode === 'login') {
-        loggedUser = login({ email, role });
+        loggedUser = login({ email, password, role });
       } else {
-        loggedUser = register({ name, email, role });
+        loggedUser = register({ name, email, password, role });
       }
       handleSuccess(loggedUser.role);
     } catch (err) {
@@ -95,12 +95,13 @@ export default function LoginPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 20,
               margin: '0 auto 12px',
               color: '#ffffff',
             }}
           >
-            ⚡
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6, color: '#ffffff' }}>
             {mode === 'login' ? 'Sign In to SurgeShield' : 'Create an Account'}
@@ -115,13 +116,38 @@ export default function LoginPage() {
         {/* Logged Out / Success Notice */}
         {infoMsg && (
           <div className="success-banner" style={{ marginBottom: 20 }}>
-            <span>✓</span>
+            <span style={{ fontWeight: 700, color: '#3b82f6' }}>•</span>
             <span>{infoMsg}</span>
           </div>
         )}
 
         {/* Error Alert */}
-        {error && <div className="error-banner" style={{ marginBottom: 20 }}>⚠️ {error}</div>}
+        {error && (
+          <div className="error-banner" style={{ marginBottom: 20 }}>
+            <span>{error}</span>
+            {error.includes('sign up first') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setError('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#60a5fa',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  marginLeft: 8,
+                  fontWeight: 600,
+                  fontSize: 13,
+                }}
+              >
+                Go to Sign Up
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Quick Demo Access Bar */}
         <div
@@ -245,7 +271,7 @@ export default function LoginPage() {
               <div
                 onClick={() => setRole('participant')}
                 style={{
-                  padding: '12px',
+                  padding: '14px 12px',
                   borderRadius: 8,
                   cursor: 'pointer',
                   border: role === 'participant' ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
@@ -253,9 +279,14 @@ export default function LoginPage() {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <div style={{ fontSize: 18, marginBottom: 2 }}>🎟️</div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: '#ffffff' }}>Participant</div>
-                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: role === 'participant' ? '#60a5fa' : '#64748b' }}>
+                    <rect x="2" y="7" width="20" height="14" rx="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: '#ffffff' }}>Participant</span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>
                   Book event seats
                 </div>
               </div>
@@ -263,7 +294,7 @@ export default function LoginPage() {
               <div
                 onClick={() => setRole('organizer')}
                 style={{
-                  padding: '12px',
+                  padding: '14px 12px',
                   borderRadius: 8,
                   cursor: 'pointer',
                   border: role === 'organizer' ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
@@ -271,9 +302,16 @@ export default function LoginPage() {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <div style={{ fontSize: 18, marginBottom: 2 }}>🚀</div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: '#ffffff' }}>Organizer</div>
-                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: role === 'organizer' ? '#60a5fa' : '#64748b' }}>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: '#ffffff' }}>Organizer</span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>
                   Create &amp; host events
                 </div>
               </div>

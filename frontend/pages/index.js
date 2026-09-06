@@ -125,25 +125,25 @@ export default function Home() {
             className={`filter-btn ${filterType === 'physical' ? 'active' : ''}`}
             onClick={() => setFilterType('physical')}
           >
-            📍 In-Person
+            In-Person
           </button>
           <button
             className={`filter-btn ${filterType === 'virtual' ? 'active' : ''}`}
             onClick={() => setFilterType('virtual')}
           >
-            🌐 Virtual Streams
+            Virtual Streams
           </button>
           <button
             className={`filter-btn ${filterType === 'fast' ? 'active' : ''}`}
             onClick={() => setFilterType('fast')}
           >
-            🔥 Selling Fast
+            Selling Fast
           </button>
           <button
             className={`filter-btn ${filterType === 'available' ? 'active' : ''}`}
             onClick={() => setFilterType('available')}
           >
-            ✅ Seats Available
+            Seats Available
           </button>
         </div>
       </div>
@@ -151,7 +151,6 @@ export default function Home() {
       {/* Error state */}
       {error && (
         <div className="error-banner">
-          <span>⚠️</span>
           <span>{error}</span>
           <button
             onClick={fetchEvents}
@@ -190,7 +189,14 @@ export default function Home() {
       {/* Empty State */}
       {!loading && filteredEvents.length === 0 && !error && (
         <div className="empty-card">
-          <div className="empty-icon">⚡</div>
+          <div className="empty-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
           <h3 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>
             No matching events found
           </h3>
@@ -236,10 +242,10 @@ export default function Home() {
           let progressColorClass = 'progress-green';
 
           if (available === 0) {
-            statusBadge = <span className="badge badge-status-soldout">⛔ SOLD OUT</span>;
+            statusBadge = <span className="badge badge-status-soldout">SOLD OUT</span>;
             progressColorClass = 'progress-red';
           } else if (ratio <= 0.25) {
-            statusBadge = <span className="badge badge-status-fast">🔥 SELLING FAST</span>;
+            statusBadge = <span className="badge badge-status-fast">SELLING FAST</span>;
             progressColorClass = 'progress-red';
           } else if (ratio <= 0.6) {
             progressColorClass = 'progress-amber';
@@ -264,7 +270,7 @@ export default function Home() {
                     className={`badge ${event.is_virtual ? 'badge-virtual' : 'badge-physical'
                       }`}
                   >
-                    {event.is_virtual ? '🌐 Virtual Stream' : '📍 In-Person Arena'}
+                    {event.is_virtual ? 'Virtual Stream' : 'In-Person Arena'}
                   </span>
                   {statusBadge}
                 </div>
@@ -276,11 +282,23 @@ export default function Home() {
 
                 <div className="meta-group">
                   <div className="meta-row">
-                    <span className="meta-icon">📍</span>
+                    <span className="meta-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </span>
                     <span>{event.is_virtual ? 'Global Online Broadcast' : event.venue || 'Venue TBA'}</span>
                   </div>
                   <div className="meta-row">
-                    <span className="meta-icon">📅</span>
+                    <span className="meta-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                    </span>
                     <span>{formattedDate}</span>
                   </div>
                 </div>

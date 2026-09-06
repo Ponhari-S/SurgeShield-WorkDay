@@ -17,7 +17,11 @@ function AppNavbar() {
     <nav className="navbar">
       <div className="nav-container">
         <Link href="/" className="logo">
-          <div className="logo-shield-icon">⚡</div>
+          <div className="logo-shield-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
           <div className="logo-brand">
             <span className="logo-title">SurgeShield</span>
             <span className="logo-tagline">Real-Time Event Engine</span>
@@ -75,7 +79,7 @@ function AppNavbar() {
                       marginTop: 2,
                     }}
                   >
-                    {isOrganizer ? '⚡ ORGANIZER' : '🎟️ PARTICIPANT'}
+                    {isOrganizer ? 'ORGANIZER' : 'PARTICIPANT'}
                   </span>
                 </div>
 
@@ -139,7 +143,7 @@ export default function App({ Component, pageProps }) {
           content="Enterprise-grade flash-sale event ticketing with atomic concurrency locks and real-time seat reservation."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22sans-serif%22 font-size=%2254%22 font-weight=%22900%22 fill=%22white%22>S</text></svg>" />
       </Head>
 
       <AppNavbar />

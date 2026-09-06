@@ -7,6 +7,7 @@ export const DEMO_ORGANIZER = {
   name: 'Sarah Connor',
   email: 'sarah.connor@surgeshield.io',
   role: 'organizer',
+  password: 'password123',
 };
 
 export const DEMO_PARTICIPANT = {
@@ -14,21 +15,53 @@ export const DEMO_PARTICIPANT = {
   name: 'Alex Mercer',
   email: 'alex.mercer@surgeshield.io',
   role: 'participant',
+  password: 'password123',
 };
+
+const REGISTERED_USERS_KEY = 'surgeshield_registered_users';
+const CURRENT_USER_KEY = 'surgeshield_user';
+
+function getStoredUsers() {
+  if (typeof window === 'undefined') return [DEMO_ORGANIZER, DEMO_PARTICIPANT];
+  try {
+    const raw = localStorage.getItem(REGISTERED_USERS_KEY);
+    if (!raw) {
+      const initial = [DEMO_ORGANIZER, DEMO_PARTICIPANT];
+      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(initial));
+      return initial;
+    }
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [DEMO_ORGANIZER, DEMO_PARTICIPANT];
+  } catch (err) {
+    console.warn('Failed to load registered users', err);
+    return [DEMO_ORGANIZER, DEMO_PARTICIPANT];
+  }
+}
+
+function saveRegisteredUsers(users) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  } catch (err) {
+    console.warn('Failed to save registered users', err);
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore user session from localStorage on initial load
+  // Restore active user session from localStorage on initial load
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('surgeshield_user');
+      const stored = localStorage.getItem(CURRENT_USER_KEY);
       if (stored) {
         setUser(JSON.parse(stored));
       } else {
         setUser(null);
       }
+      // Ensure default demo accounts are saved in the registry
+      getStoredUsers();
     } catch (e) {
       console.warn('Failed to parse stored auth user', e);
       setUser(null);
@@ -40,24 +73,71 @@ export function AuthProvider({ children }) {
   function saveUser(userData) {
     setUser(userData);
     if (userData) {
-      localStorage.setItem('surgeshield_user', JSON.stringify(userData));
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
     } else {
-      localStorage.removeItem('surgeshield_user');
+      localStorage.removeItem(CURRENT_USER_KEY);
     }
   }
 
-  function login({ email, role = 'participant' }) {
-    const defaultName = email.split('@')[0].replace(/[._]/g, ' ');
-    const formattedName = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
-    
-    // Strict Role: Role is fixed upon login/account selection
+  function login({ email, password = '', role }) {
+    if (!email || !email.trim()) {
+      throw new Error('Please enter a valid email address.');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const users = getStoredUsers();
+
+    // Check if user has already signed up
+    const existing = users.find((u) => u.email.toLowerCase() === normalizedEmail);
+    if (!existing) {
+      throw new Error('No account found with this email. Please sign up first.');
+    }
+
+    // Role validation: strict non-transferable roles
+    if (role && existing.role !== role) {
+      const registeredRoleTitle = existing.role === 'organizer' ? 'Organizer' : 'Participant';
+      throw new Error(
+        `This account is registered as a ${registeredRoleTitle}. Please select the ${registeredRoleTitle} role tab to sign in.`
+      );
+    }
+
+    // Optional password verification if set during registration
+    if (existing.password && password && existing.password !== password) {
+      throw new Error('Incorrect password. Please check your credentials.');
+    }
+
+    saveUser(existing);
+    return existing;
+  }
+
+  function register({ name, email, password = '', role = 'participant' }) {
+    if (!name || !name.trim()) {
+      throw new Error('Please provide your name.');
+    }
+    if (!email || !email.trim()) {
+      throw new Error('Please enter a valid email address.');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const users = getStoredUsers();
+
+    // Check if account already exists
+    const alreadyExists = users.some((u) => u.email.toLowerCase() === normalizedEmail);
+    if (alreadyExists) {
+      throw new Error('An account with this email already exists. Please sign in instead.');
+    }
+
     const targetRole = role === 'organizer' ? 'organizer' : 'participant';
     const newUser = {
-      id: 'usr_' + Math.random().toString(36).substring(2, 9),
-      name: formattedName || (targetRole === 'organizer' ? 'Event Organizer' : 'Event Attendee'),
-      email: email.trim().toLowerCase(),
+      id: 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+      name: name.trim(),
+      email: normalizedEmail,
       role: targetRole,
+      password: password ? password.trim() : '',
     };
+
+    const updatedUsers = [...users, newUser];
+    saveRegisteredUsers(updatedUsers);
     saveUser(newUser);
     return newUser;
   }
@@ -70,18 +150,6 @@ export function AuthProvider({ children }) {
   function loginDemoParticipant() {
     saveUser(DEMO_PARTICIPANT);
     return DEMO_PARTICIPANT;
-  }
-
-  function register({ name, email, role = 'participant' }) {
-    const targetRole = role === 'organizer' ? 'organizer' : 'participant';
-    const newUser = {
-      id: 'usr_' + Math.random().toString(36).substring(2, 9),
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      role: targetRole,
-    };
-    saveUser(newUser);
-    return newUser;
   }
 
   function logout() {

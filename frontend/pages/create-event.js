@@ -54,7 +54,14 @@ export default function CreateEvent() {
     return (
       <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
         <div className="card" style={{ padding: '48px 32px' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>🚀</div>
+          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+          </div>
           <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
             Organizer Authentication Required
           </h2>
@@ -87,7 +94,13 @@ export default function CreateEvent() {
     return (
       <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
         <div className="card" style={{ padding: '48px 32px' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>🛡️</div>
+          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+          </div>
           <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
             Organizer Account Required
           </h2>
@@ -181,7 +194,7 @@ export default function CreateEvent() {
         </p>
       </div>
 
-      {error && <div className="error-banner">⚠️ {error}</div>}
+      {error && <div className="error-banner">{error}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 32 }}>
         {/* Left Column: Form */}
@@ -226,7 +239,7 @@ export default function CreateEvent() {
                 />
                 <div>
                   <div style={{ fontWeight: 700, color: '#ffffff', fontSize: 14 }}>
-                    🌐 Virtual Broadcast Event
+                    Virtual Broadcast Event
                   </div>
                   <div style={{ color: 'var(--text-dim)', fontSize: 12 }}>
                     Stream online globally via WebRTC / Ultra-low latency mesh
@@ -301,7 +314,7 @@ export default function CreateEvent() {
                   <span>Provisioning Seat Schema...</span>
                 </>
               ) : (
-                '🚀 Publish Event & Auto-Generate Seats'
+                'Publish Event & Generate Seats'
               )}
             </button>
           </form>
@@ -321,7 +334,7 @@ export default function CreateEvent() {
                 marginBottom: 10,
               }}
             >
-              👁️ LIVE ATTENDEE CARD PREVIEW
+              LIVE ATTENDEE CARD PREVIEW
             </div>
 
             <div className="card" style={{ pointerEvents: 'none' }}>
@@ -332,9 +345,9 @@ export default function CreateEvent() {
                       form.isVirtual ? 'badge-virtual' : 'badge-physical'
                     }`}
                   >
-                    {form.isVirtual ? '🌐 Virtual Stream' : '📍 In-Person Arena'}
+                    {form.isVirtual ? 'Virtual Stream' : 'In-Person Arena'}
                   </span>
-                  <span className="badge badge-status-fast">⚡ NEW</span>
+                  <span className="badge badge-status-fast">NEW</span>
                 </div>
 
                 <h3>{form.name || 'Untitled Event'}</h3>
@@ -344,7 +357,12 @@ export default function CreateEvent() {
 
                 <div className="meta-group">
                   <div className="meta-row">
-                    <span className="meta-icon">📍</span>
+                    <span className="meta-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </span>
                     <span>
                       {form.isVirtual
                         ? 'Global Online Broadcast'
@@ -352,7 +370,14 @@ export default function CreateEvent() {
                     </span>
                   </div>
                   <div className="meta-row">
-                    <span className="meta-icon">📅</span>
+                    <span className="meta-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                    </span>
                     <span>
                       {form.eventDate
                         ? new Date(form.eventDate).toLocaleString(undefined, {
@@ -407,7 +432,7 @@ export default function CreateEvent() {
                   textTransform: 'uppercase',
                 }}
               >
-                📐 GENERATED SEAT MATRIX ({form.totalSeats} SEATS)
+                GENERATED SEAT MATRIX ({form.totalSeats} SEATS)
               </span>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                 {Math.ceil(form.totalSeats / 10)} Rows (10 per row)
