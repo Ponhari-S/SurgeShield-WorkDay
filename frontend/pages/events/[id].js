@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { api } from '../../lib/api';
 
 export default function EventDetail() {
@@ -14,6 +15,16 @@ export default function EventDetail() {
   const [error, setError] = useState('');
   const [booking, setBooking] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // Generate a fresh idempotency key when the component loads
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const randomKey = 'idemp_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+      setIdempotencyKey(randomKey);
+    }
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -36,105 +47,302 @@ export default function EventDetail() {
     );
   }
 
+  function removeSeat(seatId) {
+    setSelectedSeats((prev) => prev.filter((s) => s !== seatId));
+  }
+
+  // Determine seat tier and price for visual richness
+  function getSeatTier(label) {
+    const row = label ? label.charAt(0).toUpperCase() : 'A';
+    if (row === 'A' || row === 'B') return { name: 'VIP Front Row', class: 'tier-vip', price: 95 };
+    if (row === 'C' || row === 'D') return { name: 'Prime Tier', class: 'tier-prem', price: 65 };
+    return { name: 'General Admission', class: 'tier-gen', price: 35 };
+  }
+
+  const selectedSeatObjects = useMemo(() => {
+    if (!event || !event.seats) return [];
+    return event.seats.filter((s) => selectedSeats.includes(s.id));
+  }, [event, selectedSeats]);
+
+  const totalPrice = useMemo(() => {
+    return selectedSeatObjects.reduce((acc, seat) => {
+      return acc + getSeatTier(seat.seat_label).price;
+    }, 0);
+  }, [selectedSeatObjects]);
+
   async function handleBooking(e) {
     e.preventDefault();
     setError('');
     setSubmitting(true);
     try {
-      const result = await api.createBooking({
-        eventId: id,
-        userName,
-        userEmail,
-        seatIds: selectedSeats,
-      });
+      const result = await api.createBooking(
+        {
+          eventId: parseInt(id, 10),
+          userName,
+          userEmail,
+          seatIds: selectedSeats,
+        },
+        idempotencyKey
+      );
       setBooking(result);
       setSelectedSeats([]);
-      loadEvent(); // refresh seat statuses
+      loadEvent(); // refresh seat map
     } catch (err) {
       setError(err.message);
-      loadEvent(); // refresh if seat taken
+      loadEvent(); // refresh if seats were grabbed concurrently
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (loading) return <div className="container" style={{ color: 'var(--text-muted)' }}>Loading event details...</div>;
-  if (error && !event) return <div className="container"><div className="error-banner">⚠️ {error}</div></div>;
+  function copyReference(refText) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(refText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container" style={{ textAlign: 'center', padding: '100px 20px' }}>
+        <div className="pulse-dot" style={{ margin: '0 auto 16px', width: 14, height: 14 }} />
+        <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          SYNCHRONIZING SEAT GRID WITH POSTGRESQL MUTEX...
+        </p>
+      </div>
+    );
+  }
+
+  if (error && !event) {
+    return (
+      <div className="container">
+        <div className="error-banner">⚠️ {error}</div>
+        <Link href="/" className="btn btn-secondary" style={{ width: 'auto', display: 'inline-flex' }}>
+          ← Back to Events Feed
+        </Link>
+      </div>
+    );
+  }
+
   if (!event) return null;
 
+  const totalSeats = event.seats ? event.seats.length : event.total_seats;
+  const bookedSeatsCount = event.seats ? event.seats.filter((s) => s.status === 'booked').length : 0;
+  const availableSeatsCount = totalSeats - bookedSeatsCount;
+
   return (
-    <div className="container" style={{ maxWidth: 840 }}>
-      <div className="hero-header">
-        <span className={`badge ${event.is_virtual ? 'badge-virtual' : 'badge-physical'}`}>
-          {event.is_virtual ? '🌐 Virtual Stream' : '📍 Physical Venue'}
-        </span>
-        <h1 className="hero-title">{event.name}</h1>
-        <p className="hero-subtitle">{event.description || 'Select your seats from the layout below to complete booking.'}</p>
-        
-        <div style={{ display: 'flex', gap: '20px', marginTop: '14px', fontSize: '14px', color: 'var(--text-muted)' }}>
-          <span>📍 {event.is_virtual ? 'Online Event' : event.venue || 'Venue TBA'}</span>
-          <span>📅 {event.event_date ? new Date(event.event_date).toLocaleString() : 'Date TBA'}</span>
+    <div className="container" style={{ maxWidth: 960 }}>
+      {/* Breadcrumb Back Link */}
+      <div style={{ marginBottom: 20 }}>
+        <Link
+          href="/"
+          style={{
+            color: 'var(--text-muted)',
+            textDecoration: 'none',
+            fontSize: 14,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span>←</span> <span>Back to Events Feed</span>
+        </Link>
+      </div>
+
+      {/* Event Header Banner */}
+      <div className="card" style={{ marginBottom: 32, padding: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <span className={`badge ${event.is_virtual ? 'badge-virtual' : 'badge-physical'}`}>
+            {event.is_virtual ? '🌐 Online Virtual Stream' : '📍 In-Person Arena'}
+          </span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span className="ticker-pill">
+              <span className="pulse-dot" />
+              <span>LIVE RESERVATION GATEWAY</span>
+            </span>
+          </div>
+        </div>
+
+        <h1 className="hero-title" style={{ marginTop: 14, marginBottom: 12 }}>
+          {event.name}
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.6, marginBottom: 20 }}>
+          {event.description || 'Select your designated seats from the interactive arena below to secure real-time admission.'}
+        </p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+            paddingTop: 16,
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div className="meta-row">
+            <span className="meta-icon">📍</span>
+            <span>{event.is_virtual ? 'Global Spatial Audio Stream' : event.venue || 'Venue TBA'}</span>
+          </div>
+          <div className="meta-row">
+            <span className="meta-icon">📅</span>
+            <span>
+              {event.event_date
+                ? new Date(event.event_date).toLocaleString(undefined, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : 'Date TBA'}
+            </span>
+          </div>
+          <div className="meta-row">
+            <span className="meta-icon">👥</span>
+            <span>
+              <strong style={{ color: '#38bdf8' }}>{availableSeatsCount}</strong> of {totalSeats} seats open
+            </span>
+          </div>
         </div>
       </div>
 
-      {booking && (
-        <div className="success-banner">
-          🎉 <strong>Booking Confirmed!</strong> Reservation #{booking.id} created successfully for {booking.user_email}. ({booking.seatIds.length} seat(s) booked).
+      {/* Error / Conflict Alert */}
+      {error && (
+        <div className="error-banner">
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
-      {error && <div className="error-banner">⚠️ {error}</div>}
 
-      <div className="seat-map-wrapper">
-        <div className="screen-indicator">STAGE / SCREEN THIS WAY</div>
+      {/* Interactive Seat Arena */}
+      <div className="seat-arena-card">
+        {/* Stage Perspective Display */}
+        <div className="stage-wrapper">
+          <div className="stage-screen">⚡ STAGE / SCREEN FRONT ⚡</div>
+          <div className="stage-beam" />
+        </div>
 
-        <div className="legend">
-          <div className="legend-item">
-            <span className="legend-box" style={{ background: 'var(--seat-available)', border: '1px solid rgba(255,255,255,0.2)' }} /> Available
+        {/* Legend */}
+        <div className="seat-legend">
+          <div className="legend-chip">
+            <span className="legend-dot" style={{ background: 'var(--seat-vip-bg)', border: '1px solid var(--seat-vip-border)' }} />
+            <span>VIP Front ($95)</span>
           </div>
-          <div className="legend-item">
-            <span className="legend-box" style={{ background: 'var(--seat-selected)' }} /> Selected
+          <div className="legend-chip">
+            <span className="legend-dot" style={{ background: 'var(--seat-prem-bg)', border: '1px solid var(--seat-prem-border)' }} />
+            <span>Prime Tier ($65)</span>
           </div>
-          <div className="legend-item">
-            <span className="legend-box" style={{ background: 'var(--seat-booked)', opacity: 0.5 }} /> Booked
+          <div className="legend-chip">
+            <span className="legend-dot" style={{ background: 'var(--seat-gen-bg)', border: '1px solid var(--seat-gen-border)' }} />
+            <span>General ($35)</span>
+          </div>
+          <div className="legend-chip">
+            <span className="legend-dot" style={{ background: 'linear-gradient(135deg, #ff2a5f, #8b5cf6)' }} />
+            <span>Selected</span>
+          </div>
+          <div className="legend-chip">
+            <span className="legend-dot" style={{ background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.05)', opacity: 0.5 }} />
+            <span>Booked / Locked</span>
           </div>
         </div>
 
-        <div className="seat-map">
-          {event.seats.map((seat) => (
-            <button
-              key={seat.id}
-              className={`seat ${
-                seat.status === 'booked'
-                  ? 'booked'
-                  : selectedSeats.includes(seat.id)
-                  ? 'selected'
-                  : 'available'
-              }`}
-              onClick={() => toggleSeat(seat)}
-              disabled={seat.status === 'booked'}
-              title={seat.seat_label}
-            >
-              {seat.seat_label}
-            </button>
-          ))}
+        {/* Dynamic Seat Grid */}
+        <div className="seat-map-grid">
+          {event.seats &&
+            event.seats.map((seat) => {
+              const tier = getSeatTier(seat.seat_label);
+              const isSelected = selectedSeats.includes(seat.id);
+              const isBooked = seat.status === 'booked';
+
+              return (
+                <button
+                  key={seat.id}
+                  className={`seat-btn ${tier.class} ${isSelected ? 'selected' : ''} ${isBooked ? 'booked' : ''}`}
+                  onClick={() => toggleSeat(seat)}
+                  disabled={isBooked}
+                  title={`${seat.seat_label} (${tier.name}) - ${isBooked ? 'Booked' : '$' + tier.price}`}
+                >
+                  {seat.seat_label}
+                </button>
+              );
+            })}
+        </div>
+
+        {/* Selection Summary Cart Bar */}
+        <div className="selection-bar">
+          <div>
+            <div style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 4, textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+              Selected Capacity ({selectedSeats.length} seats)
+            </div>
+            {selectedSeats.length > 0 ? (
+              <div className="selection-tags">
+                {selectedSeatObjects.map((s) => (
+                  <span className="seat-pill" key={s.id}>
+                    {s.seat_label}
+                    <span
+                      className="seat-pill-close"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeSeat(s.id);
+                      }}
+                    >
+                      ✕
+                    </span>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+                Click any available seat on the grid above to select.
+              </span>
+            )}
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+              ESTIMATED TOTAL
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: '#ffffff', fontFamily: 'var(--font-heading)' }}>
+              ${totalPrice}
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Concurrency Safe Checkout Form */}
       <div className="form-card">
-        <h3 style={{ marginBottom: 16 }}>Complete Booking</h3>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 20, fontSize: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 20, fontWeight: 800 }}>Complete Admission Registration</h3>
+          <span
+            style={{
+              fontSize: 11,
+              fontFamily: 'var(--font-mono)',
+              background: 'rgba(0, 242, 254, 0.1)',
+              color: '#38bdf8',
+              padding: '4px 10px',
+              borderRadius: 6,
+              border: '1px solid rgba(0, 242, 254, 0.3)',
+            }}
+          >
+            🔒 Idempotent Key: {idempotencyKey.slice(0, 14)}...
+          </span>
+        </div>
+
+        <p style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: 14 }}>
           {selectedSeats.length > 0
-            ? `You have selected ${selectedSeats.length} seat(s). Fill in your details below to confirm.`
-            : 'Click on one or more available seats above to start booking.'}
+            ? `Securing ${selectedSeats.length} seat(s) with atomic row-level mutex locks. Fill in attendee details below to finalize.`
+            : 'Select at least one seat from the map above to unlock booking.'}
         </p>
 
         <form onSubmit={handleBooking}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18 }}>
             <div className="form-group">
-              <label>Full Name *</label>
+              <label>Full Attendee Name *</label>
               <input
                 required
-                placeholder="John Doe"
+                placeholder="e.g. Elena Rostova"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
               />
@@ -144,7 +352,7 @@ export default function EventDetail() {
               <input
                 type="email"
                 required
-                placeholder="john@example.com"
+                placeholder="e.g. elena@domain.com"
                 value={userEmail}
                 onChange={(e) => setUserEmail(e.target.value)}
               />
@@ -157,14 +365,91 @@ export default function EventDetail() {
             disabled={submitting || selectedSeats.length === 0}
             style={{ marginTop: 8 }}
           >
-            {submitting
-              ? 'Processing Reservation...'
-              : selectedSeats.length === 0
-              ? 'Select Seats Above'
-              : `Confirm & Book ${selectedSeats.length} Seat(s)`}
+            {submitting ? (
+              <>
+                <span className="pulse-dot" />
+                <span>Executing Atomic Reservation...</span>
+              </>
+            ) : selectedSeats.length === 0 ? (
+              'Select Seats on Map Above to Proceed'
+            ) : (
+              `Lock & Reserve ${selectedSeats.length} Seat(s) ($${totalPrice}) →`
+            )}
           </button>
         </form>
       </div>
+
+      {/* Digital Ticket Pass Modal */}
+      {booking && (
+        <div className="modal-overlay" onClick={() => setBooking(null)}>
+          <div className="ticket-pass" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-header">
+              <div className="ticket-brand">⚡ SURGESHIELD ADMISSION PASS</div>
+              <div className="ticket-event-name">{event.name}</div>
+            </div>
+
+            <div className="ticket-body">
+              <div className="ticket-row">
+                <div className="ticket-col">
+                  <label>Attendee</label>
+                  <span>{booking.user_name || userName}</span>
+                </div>
+                <div className="ticket-col" style={{ textAlign: 'right' }}>
+                  <label>Status</label>
+                  <span style={{ color: '#34d399' }}>● CONFIRMED</span>
+                </div>
+              </div>
+
+              <div className="ticket-row">
+                <div className="ticket-col">
+                  <label>Venue / Access</label>
+                  <span>{event.is_virtual ? 'Virtual Stream Link' : event.venue || 'Main Arena'}</span>
+                </div>
+                <div className="ticket-col" style={{ textAlign: 'right' }}>
+                  <label>Seats Reserved</label>
+                  <span style={{ color: '#ff2a5f' }}>
+                    {booking.seatIds ? booking.seatIds.length : booking.seats ? booking.seats.length : selectedSeats.length} Seat(s)
+                  </span>
+                </div>
+              </div>
+
+              <div className="ticket-divider" />
+
+              {/* Barcode & Reference visualization */}
+              <div className="ticket-barcode-wrap">
+                <div className="ticket-barcode">
+                  {[...Array(38)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="ticket-bar"
+                      style={{
+                        width: (i % 3 === 0 ? 4 : i % 2 === 0 ? 2 : 1),
+                        height: `${32 + (i % 5) * 4}px`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="ticket-ref">REF: #BK-{booking.id}-{Date.now().toString(36).toUpperCase()}</div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => copyReference(`#BK-${booking.id}`)}
+                >
+                  {copied ? '✓ Reference Copied' : '📋 Copy Reference'}
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => setBooking(null)}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
