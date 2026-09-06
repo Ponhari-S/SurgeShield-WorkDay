@@ -27,13 +27,11 @@ export function AuthProvider({ children }) {
       if (stored) {
         setUser(JSON.parse(stored));
       } else {
-        // Default to demo participant for instant frictionless experience
-        setUser(DEMO_PARTICIPANT);
-        localStorage.setItem('surgeshield_user', JSON.stringify(DEMO_PARTICIPANT));
+        setUser(null);
       }
     } catch (e) {
       console.warn('Failed to parse stored auth user', e);
-      setUser(DEMO_PARTICIPANT);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -52,11 +50,13 @@ export function AuthProvider({ children }) {
     const defaultName = email.split('@')[0].replace(/[._]/g, ' ');
     const formattedName = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
     
+    // Strict Role: Role is fixed upon login/account selection
+    const targetRole = role === 'organizer' ? 'organizer' : 'participant';
     const newUser = {
       id: 'usr_' + Math.random().toString(36).substring(2, 9),
-      name: formattedName || (role === 'organizer' ? 'Event Organizer' : 'Event Attendee'),
+      name: formattedName || (targetRole === 'organizer' ? 'Event Organizer' : 'Event Attendee'),
       email: email.trim().toLowerCase(),
-      role: role === 'organizer' ? 'organizer' : 'participant',
+      role: targetRole,
     };
     saveUser(newUser);
     return newUser;
@@ -73,21 +73,15 @@ export function AuthProvider({ children }) {
   }
 
   function register({ name, email, role = 'participant' }) {
+    const targetRole = role === 'organizer' ? 'organizer' : 'participant';
     const newUser = {
       id: 'usr_' + Math.random().toString(36).substring(2, 9),
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      role: role === 'organizer' ? 'organizer' : 'participant',
+      role: targetRole,
     };
     saveUser(newUser);
     return newUser;
-  }
-
-  function switchRole(newRole) {
-    if (!user) return;
-    const targetRole = newRole || (user.role === 'organizer' ? 'participant' : 'organizer');
-    const updated = { ...user, role: targetRole };
-    saveUser(updated);
   }
 
   function logout() {
@@ -105,7 +99,6 @@ export function AuthProvider({ children }) {
         loginDemoOrganizer,
         loginDemoParticipant,
         register,
-        switchRole,
         logout,
       }}
     >

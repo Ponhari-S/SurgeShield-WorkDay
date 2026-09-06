@@ -1,10 +1,17 @@
 import '../styles/globals.css';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { AuthProvider, useAuth } from '../lib/auth';
 
 function AppNavbar() {
-  const { user, isOrganizer, logout, switchRole } = useAuth();
+  const router = useRouter();
+  const { user, isOrganizer, logout } = useAuth();
+
+  function handleLogout() {
+    logout();
+    router.push('/login?loggedOut=true');
+  }
 
   return (
     <nav className="navbar">
@@ -40,13 +47,13 @@ function AppNavbar() {
                 </Link>
               )}
 
-              {/* User Profile & Role Indicator */}
+              {/* User Profile & Permanent Role Indicator (Immutable Role) */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 10,
-                  paddingLeft: 12,
+                  gap: 12,
+                  paddingLeft: 14,
                   borderLeft: '1px solid var(--border-subtle)',
                 }}
               >
@@ -55,14 +62,11 @@ function AppNavbar() {
                     {user.name}
                   </span>
                   <span
-                    onClick={() => switchRole()}
-                    title="Click to toggle role between Organizer and Participant"
                     style={{
                       fontSize: 10,
                       fontFamily: 'var(--font-mono)',
                       fontWeight: 700,
                       letterSpacing: '0.05em',
-                      cursor: 'pointer',
                       padding: '1px 7px',
                       borderRadius: 4,
                       background: isOrganizer ? 'rgba(139, 92, 246, 0.2)' : 'rgba(0, 242, 254, 0.15)',
@@ -71,39 +75,53 @@ function AppNavbar() {
                       marginTop: 2,
                     }}
                   >
-                    {isOrganizer ? '⚡ ORGANIZER' : '🎟️ PARTICIPANT'} ⇄
+                    {isOrganizer ? '⚡ ORGANIZER' : '🎟️ PARTICIPANT'}
                   </span>
                 </div>
 
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="nav-link"
                   style={{
                     fontSize: 12,
-                    padding: '4px 8px',
-                    background: 'transparent',
-                    border: 'none',
+                    padding: '6px 12px',
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: 8,
                     cursor: 'pointer',
-                    color: 'var(--text-dim)',
+                    color: '#fca5a5',
+                    fontWeight: 600,
                   }}
-                  title="Sign Out"
+                  title="Sign Out of Session"
                 >
                   Logout
                 </button>
               </div>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="nav-cta"
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid var(--border-subtle)',
-                boxShadow: 'none',
-              }}
-            >
-              Sign In
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Link
+                href="/login"
+                className="nav-link"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#e2e8f0',
+                }}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                className="nav-cta"
+                style={{
+                  fontSize: 13,
+                  padding: '7px 16px',
+                }}
+              >
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       </div>

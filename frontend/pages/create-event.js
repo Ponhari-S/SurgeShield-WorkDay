@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth';
 
 export default function CreateEvent() {
   const router = useRouter();
-  const { user, isOrganizer, switchRole } = useAuth();
+  const { user, isOrganizer, logout } = useAuth();
 
   const [form, setForm] = useState({
     name: '',
@@ -82,33 +82,46 @@ export default function CreateEvent() {
     );
   }
 
-  // 2. Participant Role Restriction Gate
+  // 2. Participant Role Restriction Gate (Strict Role Separation)
   if (!isOrganizer) {
     return (
       <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
         <div className="card" style={{ padding: '48px 32px' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>🎟️</div>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🛡️</div>
           <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
-            Organizer Permission Required
+            Organizer Account Required
           </h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: 24, fontSize: 15, lineHeight: 1.6 }}>
-            You are currently signed in as <strong style={{ color: '#ffffff' }}>{user.name}</strong> with the <span style={{ color: '#38bdf8' }}>Participant</span> role.
-            Participants are designated to book seats. To publish and host events, please switch your profile to the Organizer role.
+            You are currently signed in as <strong style={{ color: '#ffffff' }}>{user.name}</strong> with a <span style={{ color: '#38bdf8', fontWeight: 700 }}>Participant</span> account.
+            Participant accounts cannot publish events. To create and host events, please sign in or register with an <strong>Organizer Account</strong>.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
-              onClick={() => switchRole('organizer')}
+              onClick={() => {
+                logout();
+                router.push('/login?redirect=/create-event&initialMode=login');
+              }}
               className="btn"
-              style={{ width: 'auto', padding: '12px 28px' }}
+              style={{ width: 'auto', padding: '12px 24px' }}
             >
-              ⚡ Switch to Organizer Role &amp; Host Event
+              Sign In as Organizer →
+            </button>
+            <button
+              onClick={() => {
+                logout();
+                router.push('/signup?redirect=/create-event');
+              }}
+              className="btn btn-secondary"
+              style={{ width: 'auto', padding: '12px 24px' }}
+            >
+              Create Organizer Account
             </button>
             <Link
               href="/"
               className="btn btn-secondary"
-              style={{ width: 'auto', padding: '12px 24px' }}
+              style={{ width: 'auto', padding: '12px 20px' }}
             >
-              Back to Events
+              Browse Events
             </Link>
           </div>
         </div>

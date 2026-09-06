@@ -1,28 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { redirect } = router.query;
-  const { login, loginDemoOrganizer, loginDemoParticipant, register } = useAuth();
+  const { redirect, loggedOut, initialMode } = router.query;
+  const { user, login, loginDemoOrganizer, loginDemoParticipant, register } = useAuth();
 
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState(initialMode === 'register' ? 'register' : 'login'); // 'login' | 'register'
   const [role, setRole] = useState('participant'); // 'participant' | 'organizer'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [infoMsg, setInfoMsg] = useState(loggedOut ? 'You have been successfully logged out.' : '');
 
-  function handleSuccess() {
-    const destination = redirect || (role === 'organizer' ? '/create-event' : '/');
+  useEffect(() => {
+    if (initialMode === 'register') {
+      setMode('register');
+    }
+  }, [initialMode]);
+
+  function handleSuccess(userRole) {
+    const destination = redirect || (userRole === 'organizer' ? '/create-event' : '/');
     router.push(destination);
   }
 
   function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setInfoMsg('');
 
     if (!email) {
       setError('Please provide a valid email address.');
@@ -30,34 +38,35 @@ export default function LoginPage() {
     }
 
     if (mode === 'register' && !name.trim()) {
-      setError('Please provide your full name.');
+      setError('Please enter your full name.');
       return;
     }
 
     try {
+      let loggedUser;
       if (mode === 'login') {
-        login({ email, role });
+        loggedUser = login({ email, role });
       } else {
-        register({ name, email, role });
+        loggedUser = register({ name, email, role });
       }
-      handleSuccess();
+      handleSuccess(loggedUser.role);
     } catch (err) {
       setError(err.message || 'Authentication failed');
     }
   }
 
   function handleQuickOrganizer() {
-    loginDemoOrganizer();
-    router.push(redirect || '/create-event');
+    const org = loginDemoOrganizer();
+    handleSuccess(org.role);
   }
 
   function handleQuickParticipant() {
-    loginDemoParticipant();
-    router.push(redirect || '/');
+    const part = loginDemoParticipant();
+    handleSuccess(part.role);
   }
 
   return (
-    <div className="container" style={{ maxWidth: 520, padding: '48px 20px 80px' }}>
+    <div className="container" style={{ maxWidth: 520, padding: '40px 20px 80px' }}>
       {/* Back Link */}
       <div style={{ marginBottom: 24 }}>
         <Link
@@ -76,18 +85,18 @@ export default function LoginPage() {
       </div>
 
       <div className="card" style={{ padding: '36px 32px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: 14,
+              width: 50,
+              height: 50,
+              borderRadius: 12,
               background: 'linear-gradient(135deg, #ff2a5f, #8b5cf6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 26,
-              margin: '0 auto 16px',
+              fontSize: 24,
+              margin: '0 auto 14px',
               boxShadow: '0 0 20px var(--primary-glow)',
             }}
           >
@@ -98,10 +107,21 @@ export default function LoginPage() {
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
             {mode === 'login'
-              ? 'Select your account type to access real-time event operations.'
-              : 'Join as an organizer or attendee to unlock atomic reservations.'}
+              ? 'Sign in with your designated account role to continue.'
+              : 'Register as an organizer or attendee to unlock real-time reservations.'}
           </p>
         </div>
+
+        {/* Logged Out / Success Notice */}
+        {infoMsg && (
+          <div className="success-banner" style={{ marginBottom: 20 }}>
+            <span>✓</span>
+            <span>{infoMsg}</span>
+          </div>
+        )}
+
+        {/* Error Alert */}
+        {error && <div className="error-banner" style={{ marginBottom: 20 }}>⚠️ {error}</div>}
 
         {/* Quick Demo Access Bar */}
         <div
@@ -110,7 +130,7 @@ export default function LoginPage() {
             border: '1px solid var(--border-subtle)',
             borderRadius: 14,
             padding: 16,
-            marginBottom: 26,
+            marginBottom: 24,
           }}
         >
           <div
@@ -124,7 +144,7 @@ export default function LoginPage() {
               textAlign: 'center',
             }}
           >
-            ⚡ FAST-TRACK DEMO ACCOUNTS
+            ⚡ ONE-CLICK DEMO LOGINS
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <button
@@ -156,7 +176,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Tabs: Login vs Register */}
+        {/* Tabs: Sign In vs Register */}
         <div
           style={{
             display: 'flex',
@@ -169,7 +189,10 @@ export default function LoginPage() {
         >
           <button
             type="button"
-            onClick={() => setMode('login')}
+            onClick={() => {
+              setMode('login');
+              setError('');
+            }}
             style={{
               flex: 1,
               padding: '10px 0',
@@ -187,7 +210,10 @@ export default function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => setMode('register')}
+            onClick={() => {
+              setMode('register');
+              setError('');
+            }}
             style={{
               flex: 1,
               padding: '10px 0',
@@ -201,18 +227,20 @@ export default function LoginPage() {
               transition: 'all 0.2s',
             }}
           >
-            Register
+            Sign Up
           </button>
         </div>
 
-        {error && <div className="error-banner" style={{ marginBottom: 20 }}>⚠️ {error}</div>}
-
         <form onSubmit={handleSubmit}>
-          {/* Role Selection Cards */}
+          {/* Permanent Role Selector */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', marginBottom: 10, fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>
-              I am participating as:
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
+              <label style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>
+                Account Role (Non-Transferable)
+              </label>
+              <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>Fixed per account</span>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div
                 onClick={() => setRole('participant')}
@@ -259,7 +287,7 @@ export default function LoginPage() {
               <label>Full Name *</label>
               <input
                 required
-                placeholder="e.g. Jordan Miller"
+                placeholder="e.g. Elena Rostova"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -290,7 +318,7 @@ export default function LoginPage() {
           <button className="btn" type="submit" style={{ marginTop: 8 }}>
             {mode === 'login'
               ? `Sign In as ${role === 'organizer' ? 'Organizer' : 'Participant'} →`
-              : `Create ${role === 'organizer' ? 'Organizer' : 'Participant'} Account →`}
+              : `Register as ${role === 'organizer' ? 'Organizer' : 'Participant'} →`}
           </button>
         </form>
       </div>
