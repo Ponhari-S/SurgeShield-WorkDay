@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Clean Professional Modern Blue Design System */
-  --bg-space: #0b0f19;
+    --bg-space: #0b0f19;
   --bg-card: #131b2e;
   --bg-card-hover: #18233c;
   --bg-card-solid: #111827;
@@ -51,15 +50,13 @@ html, body {
 }
 
 body {
-  /* Subtle top ambient blue tint, calm and not shiny */
-  background-image: radial-gradient(ellipse 70% 30% at 50% -5%, rgba(37, 99, 235, 0.12) 0%, transparent 60%);
+    background-image: radial-gradient(ellipse 70% 30% at 50% -5%, rgba(37, 99, 235, 0.12) 0%, transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
 }
 
-/* Navbar */
 .navbar {
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(12px);
@@ -160,7 +157,6 @@ body {
   background: var(--primary-hover);
 }
 
-/* Main Container */
 .main-wrapper {
   flex: 1;
   position: relative;
@@ -173,7 +169,6 @@ body {
   padding: 32px 24px 64px;
 }
 
-/* Hero Section */
 .hero-wrapper {
   padding: 32px 0 24px;
   margin-bottom: 20px;
@@ -222,7 +217,6 @@ body {
   margin-bottom: 24px;
 }
 
-/* Filter & Search Toolbar */
 .toolbar-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -317,7 +311,6 @@ body {
   color: #93c5fd;
 }
 
-/* Event Cards Grid */
 .event-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -423,7 +416,6 @@ body {
   color: var(--text-dim);
 }
 
-/* Capacity meter */
 .capacity-container {
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
@@ -478,7 +470,6 @@ body {
   background: #ef4444;
 }
 
-/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -521,7 +512,6 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Empty State */
 .empty-card {
   background: var(--bg-card);
   border: 1px dashed rgba(255, 255, 255, 0.15);
@@ -545,7 +535,6 @@ body {
   color: #60a5fa;
 }
 
-/* Seat Arena Card */
 .seat-arena-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -654,7 +643,6 @@ body {
   text-decoration: line-through;
 }
 
-/* Selection Summary Bar */
 .selection-bar {
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
@@ -699,7 +687,6 @@ body {
   opacity: 1;
 }
 
-/* Forms */
 .form-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -761,7 +748,6 @@ body {
   cursor: pointer;
 }
 
-/* Ticket Pass Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -868,7 +854,6 @@ body {
   margin-top: 6px;
 }
 
-/* Notification Banners */
 .error-banner {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
@@ -908,7 +893,6 @@ body {
   border: 1px solid rgba(37, 99, 235, 0.25);
 }
 
-/* Footer */
 .footer {
   border-top: 1px solid var(--border-subtle);
   background: #080c16;

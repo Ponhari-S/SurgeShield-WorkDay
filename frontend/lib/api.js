@@ -1,5 +1,3 @@
-// Thin wrapper around fetch so all API calls go through one place.
-// EXTENSION POINT: add retry/backoff here later for dependency-failure handling.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 async function request(path, options = {}) {

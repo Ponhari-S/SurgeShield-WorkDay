@@ -51,7 +51,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore active user session from localStorage on initial load
   useEffect(() => {
     try {
       const stored = localStorage.getItem(CURRENT_USER_KEY);
@@ -60,7 +59,6 @@ export function AuthProvider({ children }) {
       } else {
         setUser(null);
       }
-      // Ensure default demo accounts are saved in the registry
       getStoredUsers();
     } catch (e) {
       console.warn('Failed to parse stored auth user', e);
@@ -87,13 +85,11 @@ export function AuthProvider({ children }) {
     const normalizedEmail = email.trim().toLowerCase();
     const users = getStoredUsers();
 
-    // Check if user has already signed up
     const existing = users.find((u) => u.email.toLowerCase() === normalizedEmail);
     if (!existing) {
       throw new Error('No account found with this email. Please sign up first.');
     }
 
-    // Role validation: strict non-transferable roles
     if (role && existing.role !== role) {
       const registeredRoleTitle = existing.role === 'organizer' ? 'Organizer' : 'Participant';
       throw new Error(
@@ -101,7 +97,6 @@ export function AuthProvider({ children }) {
       );
     }
 
-    // Optional password verification if set during registration
     if (existing.password && password && existing.password !== password) {
       throw new Error('Incorrect password. Please check your credentials.');
     }
@@ -121,7 +116,6 @@ export function AuthProvider({ children }) {
     const normalizedEmail = email.trim().toLowerCase();
     const users = getStoredUsers();
 
-    // Check if account already exists
     const alreadyExists = users.some((u) => u.email.toLowerCase() === normalizedEmail);
     if (alreadyExists) {
       throw new Error('An account with this email already exists. Please sign in instead.');

@@ -21,9 +21,8 @@ export default function CreateEvent() {
 
   const update = (field, value) => setForm((f) => ({ ...f, [field]: value }));
 
-  // Simulate seat grid rows for live visualizer
   const simulatedSeats = useMemo(() => {
-    const total = Math.min(form.totalSeats || 0, 100); // visualize up to 100 dots
+    const total = Math.min(form.totalSeats || 0, 100);
     const rows = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const perRow = 10;
     const list = [];
@@ -49,7 +48,6 @@ export default function CreateEvent() {
     }
   }
 
-  // 1. Unauthenticated Gate
   if (!user) {
     return (
       <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
@@ -89,7 +87,6 @@ export default function CreateEvent() {
     );
   }
 
-  // 2. Participant Role Restriction Gate (Strict Role Separation)
   if (!isOrganizer) {
     return (
       <div className="container" style={{ maxWidth: 640, textAlign: 'center', padding: '60px 20px' }}>
@@ -142,10 +139,8 @@ export default function CreateEvent() {
     );
   }
 
-  // 3. Organizer Studio
   return (
     <div className="container" style={{ maxWidth: 1100 }}>
-      {/* Back Link */}
       <div style={{ marginBottom: 20 }}>
         <Link
           href="/"
@@ -197,7 +192,6 @@ export default function CreateEvent() {
       {error && <div className="error-banner">{error}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 32 }}>
-        {/* Left Column: Form */}
         <div className="form-card" style={{ marginTop: 0 }}>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -220,7 +214,6 @@ export default function CreateEvent() {
               />
             </div>
 
-            {/* Virtual Event Toggle */}
             <div className="form-group">
               <label
                 htmlFor="isVirtual"
@@ -269,7 +262,6 @@ export default function CreateEvent() {
               />
             </div>
 
-            {/* Capacity Slider & Input */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <label style={{ margin: 0 }}>Total Seats Capacity (Max 1000) *</label>
@@ -320,9 +312,7 @@ export default function CreateEvent() {
           </form>
         </div>
 
-        {/* Right Column: Live Interactive Card Preview & Seat Layout */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* Card Preview */}
           <div>
             <div
               style={{
@@ -413,7 +403,6 @@ export default function CreateEvent() {
             </div>
           </div>
 
-          {/* Seat Grid Preview */}
           <div className="card" style={{ padding: 20 }}>
             <div
               style={{

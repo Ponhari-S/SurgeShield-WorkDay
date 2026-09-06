@@ -7,8 +7,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all'); // all, physical, virtual, fast, available
-  const [sortBy, setSortBy] = useState('date'); // date, seats, name
+  const [filterType, setFilterType] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
 
   useEffect(() => {
     fetchEvents();
@@ -51,7 +51,6 @@ export default function Home() {
         if (sortBy === 'name') {
           return a.name.localeCompare(b.name);
         }
-        // default: date (closest first)
         const dateA = a.event_date ? new Date(a.event_date).getTime() : Infinity;
         const dateB = b.event_date ? new Date(b.event_date).getTime() : Infinity;
         return dateA - dateB;
@@ -60,7 +59,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      {/* Hero Header */}
       <div className="hero-wrapper">
         <div className="hero-pill">
           <span className="pulse-dot" />
@@ -76,7 +74,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Toolbar: Search, Filters & Sorting */}
       <div className="toolbar-card">
         <div className="toolbar-top">
           <div className="search-input-wrap">
@@ -113,7 +110,6 @@ export default function Home() {
           </select>
         </div>
 
-        {/* Filter Pills */}
         <div className="filter-pills">
           <button
             className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
@@ -148,7 +144,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Error state */}
       {error && (
         <div className="error-banner">
           <span>{error}</span>
@@ -169,7 +164,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Loading Skeleton */}
       {loading && (
         <div className="event-grid">
           {[1, 2, 3].map((n) => (
@@ -186,7 +180,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Empty State */}
       {!loading && filteredEvents.length === 0 && !error && (
         <div className="empty-card">
           <div className="empty-icon">
@@ -228,7 +221,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Events Grid */}
       <div className="event-grid">
         {filteredEvents.map((event) => {
           const available = parseInt(event.seats_available ?? event.total_seats, 10);
@@ -237,7 +229,6 @@ export default function Home() {
           const ratio = total > 0 ? available / total : 0;
           const pctBooked = total > 0 ? Math.round((booked / total) * 100) : 0;
 
-          // Status and color calculations
           let statusBadge = null;
           let progressColorClass = 'progress-green';
 
@@ -305,7 +296,6 @@ export default function Home() {
               </div>
 
               <div>
-                {/* Live Capacity Meter */}
                 <div className="capacity-container">
                   <div className="capacity-info">
                     <span className="capacity-label">Seat Availability</span>

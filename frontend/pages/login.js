@@ -8,8 +8,8 @@ export default function LoginPage() {
   const { redirect, loggedOut, initialMode } = router.query;
   const { user, login, loginDemoOrganizer, loginDemoParticipant, register } = useAuth();
 
-  const [mode, setMode] = useState(initialMode === 'register' ? 'register' : 'login'); // 'login' | 'register'
-  const [role, setRole] = useState('participant'); // 'participant' | 'organizer'
+  const [mode, setMode] = useState(initialMode === 'register' ? 'register' : 'login');
+  const [role, setRole] = useState('participant');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,7 +67,6 @@ export default function LoginPage() {
 
   return (
     <div className="container" style={{ maxWidth: 500, padding: '40px 20px 80px' }}>
-      {/* Back Link */}
       <div style={{ marginBottom: 24 }}>
         <Link
           href="/"
@@ -113,7 +112,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Logged Out / Success Notice */}
         {infoMsg && (
           <div className="success-banner" style={{ marginBottom: 20 }}>
             <span style={{ fontWeight: 700, color: '#3b82f6' }}>•</span>
@@ -121,7 +119,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Error Alert */}
         {error && (
           <div className="error-banner" style={{ marginBottom: 20 }}>
             <span>{error}</span>
@@ -149,7 +146,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Quick Demo Access Bar */}
         <div
           style={{
             background: 'var(--bg-input)',
@@ -202,7 +198,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Tabs: Sign In vs Register */}
         <div
           style={{
             display: 'flex',
@@ -258,7 +253,6 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Permanent Role Selector */}
           <div style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
               <label style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>

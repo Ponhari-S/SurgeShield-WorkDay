@@ -51,7 +51,6 @@ function AppNavbar() {
                 </Link>
               )}
 
-              {/* User Profile & Permanent Role Indicator (Immutable Role) */}
               <div
                 style={{
                   display: 'flex',

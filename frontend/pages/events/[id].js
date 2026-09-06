@@ -18,7 +18,6 @@ export default function EventDetail() {
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [copied, setCopied] = useState(false);
 
-  // Generate a fresh idempotency key when the component loads
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const randomKey = 'idemp_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
@@ -51,7 +50,6 @@ export default function EventDetail() {
     setSelectedSeats((prev) => prev.filter((s) => s !== seatId));
   }
 
-  // Determine seat tier and price for visual richness
   function getSeatTier(label) {
     const row = label ? label.charAt(0).toUpperCase() : 'A';
     if (row === 'A' || row === 'B') return { name: 'VIP Front Row', class: 'tier-vip', price: 95 };
@@ -91,10 +89,10 @@ export default function EventDetail() {
       );
       setBooking(result);
       setSelectedSeats([]);
-      loadEvent(); // refresh seat map
+      loadEvent();
     } catch (err) {
       setError(err.message);
-      loadEvent(); // refresh if seats were grabbed concurrently
+      loadEvent();
     } finally {
       setSubmitting(false);
     }
@@ -138,7 +136,6 @@ export default function EventDetail() {
 
   return (
     <div className="container" style={{ maxWidth: 960 }}>
-      {/* Breadcrumb Back Link */}
       <div style={{ marginBottom: 20 }}>
         <Link
           href="/"
@@ -155,7 +152,6 @@ export default function EventDetail() {
         </Link>
       </div>
 
-      {/* Event Header Banner */}
       <div className="card" style={{ marginBottom: 32, padding: 32 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
           <span className={`badge ${event.is_virtual ? 'badge-virtual' : 'badge-physical'}`}>
@@ -232,21 +228,17 @@ export default function EventDetail() {
         </div>
       </div>
 
-      {/* Error / Conflict Alert */}
       {error && (
         <div className="error-banner">
           <span>{error}</span>
         </div>
       )}
 
-      {/* Interactive Seat Arena */}
       <div className="seat-arena-card">
-        {/* Stage Perspective Display */}
         <div className="stage-wrapper">
           <div className="stage-screen">STAGE / SCREEN FRONT</div>
         </div>
 
-        {/* Legend */}
         <div className="seat-legend">
           <div className="legend-chip">
             <span className="legend-dot" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.15)' }} />
@@ -262,7 +254,6 @@ export default function EventDetail() {
           </div>
         </div>
 
-        {/* Dynamic Seat Grid */}
         <div className="seat-map-grid">
           {event.seats &&
             event.seats.map((seat) => {
@@ -284,7 +275,6 @@ export default function EventDetail() {
             })}
         </div>
 
-        {/* Selection Summary Cart Bar */}
         <div className="selection-bar">
           <div>
             <div style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 4, textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
@@ -325,7 +315,6 @@ export default function EventDetail() {
         </div>
       </div>
 
-      {/* Concurrency Safe Checkout Form */}
       {!user ? (
         <div className="form-card" style={{ textAlign: 'center', padding: '40px 24px' }}>
           <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
@@ -367,7 +356,6 @@ export default function EventDetail() {
             </span>
           </div>
 
-          {/* Verified Attendee Badge (Eliminates manual name and email typing!) */}
           <div
             style={{
               background: 'var(--bg-input)',
@@ -440,7 +428,6 @@ export default function EventDetail() {
         </div>
       )}
 
-      {/* Digital Ticket Pass Modal */}
       {booking && (
         <div className="modal-overlay" onClick={() => setBooking(null)}>
           <div className="ticket-pass" onClick={(e) => e.stopPropagation()}>
@@ -476,7 +463,6 @@ export default function EventDetail() {
 
               <div className="ticket-divider" />
 
-              {/* Barcode & Reference visualization */}
               <div className="ticket-barcode-wrap">
                 <div className="ticket-barcode">
                   {[...Array(38)].map((_, i) => (
