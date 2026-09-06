@@ -1,0 +1,9 @@
+{
+  "name": "surgeshield-load-generator",
+  "version": "1.0.0",
+  "description": "Traffic surge load testing generator for SurgeShield Swarm Autoscaler demo",
+  "main": "surgeGen.js",
+  "dependencies": {
+    "axios": "^1.6.8"
+  }
+}

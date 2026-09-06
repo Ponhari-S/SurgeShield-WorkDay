@@ -1,0 +1,38 @@
+groups:
+  - name: surgeshield_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[1m])) / sum(rate(http_requests_total[1m]))) * 100 > 5
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "SurgeShield HTTP Error Rate > 5%"
+          description: "High error rate detected on API tier. More than 5% of requests returning 5xx status codes."
+
+      - alert: HighP99Latency
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le)) > 1.0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "SurgeShield P99 Latency > 1000ms"
+          description: "P99 response latency has breached 1.0 second threshold."
+
+      - alert: HighQueueBacklog
+        expr: sum(surgeshield_queue_depth) > 1000 or sum(bullmq_queue_depth) > 1000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Worker Queue Backlog > 1000 jobs"
+          description: "Worker queue backlog is growing rapidly. Queue depth has exceeded 1000 unprocessed notification jobs."
+
+      - alert: InstanceDown
+        expr: up{job="surgeshield_api"} == 0
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "SurgeShield API Replica Down"
+          description: "An instance of surgeshield_api failed health checks and is down."

@@ -1,0 +1,73 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "title": "Traefik Ingress - Total RPS",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(traefik_service_requests_total[30s])) or sum(rate(http_requests_total[30s]))",
+          "legendFormat": "RPS"
+        }
+      ]
+    },
+    {
+      "title": "API Container Avg CPU Utilization (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "avg(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name=~\".*api.*\"}[1m])) * 100",
+          "legendFormat": "Avg CPU %"
+        }
+      ]
+    },
+    {
+      "title": "Active API Replicas",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "count(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name=~\".*api.*\"}) or count(up{job=\"surgeshield_api\"})",
+          "legendFormat": "Replicas"
+        }
+      ]
+    },
+    {
+      "title": "P99 Latency (ms)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le)) * 1000",
+          "legendFormat": "P99 Latency"
+        }
+      ]
+    },
+    {
+      "title": "BullMQ Worker Queue Depth",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(surgeshield_queue_depth) or sum(bullmq_queue_depth)",
+          "legendFormat": "Queue Backlog"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["surgeshield", "autoscaling"],
+  "time": { "from": "now-15m", "to": "now" },
+  "title": "SurgeShield Live System Dashboard",
+  "uid": "surgeshield-live-overview"
+}

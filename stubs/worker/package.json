@@ -1,0 +1,10 @@
+{
+  "name": "surgeshield-worker-stub",
+  "version": "1.0.0",
+  "description": "Worker stub process for async email and calendar processing",
+  "main": "worker.js",
+  "dependencies": {
+    "express": "^4.19.2",
+    "prom-client": "^15.1.2"
+  }
+}
