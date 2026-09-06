@@ -1,8 +1,10 @@
 const Docker = require('dockerode');
+const http = require('http');
 
 class SwarmScaler {
   constructor(options = {}) {
-    this.docker = new Docker({ socketPath: options.socketPath || '/var/run/docker.sock' });
+    this.socketPath = options.socketPath || '/var/run/docker.sock';
+    this.docker = new Docker({ socketPath: this.socketPath });
     this.isScaling = false;
 
     // Cooldown tracking for anti-flapping
@@ -33,37 +35,68 @@ class SwarmScaler {
     return serviceSpec.Spec.Mode.Replicated?.Replicas || 1;
   }
 
+  // Direct Docker Engine API Unix Socket HTTP Call
+  updateServiceViaSocket(serviceId, versionIndex, updatedSpec) {
+    return new Promise((resolve, reject) => {
+      const postData = JSON.stringify(updatedSpec);
+      const req = http.request({
+        socketPath: this.socketPath,
+        path: `/services/${serviceId}/update?version=${versionIndex}`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(body);
+          } else {
+            reject(new Error(`(HTTP code ${res.statusCode}) ${body}`));
+          }
+        });
+      });
+      req.on('error', reject);
+      req.write(postData);
+      req.end();
+    });
+  }
+
   async setServiceReplicas(serviceNamePattern, newReplicas) {
     const serviceSpec = await this.findServiceByName(serviceNamePattern);
     if (!serviceSpec) return false;
 
-    const service = this.docker.getService(serviceSpec.ID);
-    const currentVersion = serviceSpec.Version.Index;
-    const currentReplicas = serviceSpec.Spec.Mode.Replicated?.Replicas || 1;
-
-    if (currentReplicas === newReplicas) {
-      return true;
-    }
-
-    console.log(`[SwarmScaler] 🚀 Scaling service '${serviceSpec.Spec.Name}' from ${currentReplicas} to ${newReplicas} replicas`);
-
-    const updatedSpec = { ...serviceSpec.Spec };
-    updatedSpec.Mode = {
-      Replicated: { Replicas: newReplicas }
-    };
-
     try {
-      await service.update({ version: currentVersion }, updatedSpec);
-      console.log(`[SwarmScaler] ✅ Successfully scaled '${serviceSpec.Spec.Name}' to ${newReplicas} replicas.`);
+      const service = this.docker.getService(serviceSpec.ID);
+      const info = await service.inspect();
+      const version = info.Version.Index;
+      const currentReplicas = info.Spec?.Mode?.Replicated?.Replicas || 1;
+
+      if (currentReplicas === newReplicas) {
+        return true;
+      }
+
+      console.log(`[SwarmScaler] 🚀 Scaling service '${info.Spec.Name}' from ${currentReplicas} to ${newReplicas} replicas (Version Index: ${version})`);
+
+      const updatedSpec = { ...info.Spec };
+      updatedSpec.Mode = {
+        Replicated: { Replicas: parseInt(newReplicas, 10) }
+      };
+
+      // Direct Docker Engine API Socket Call
+      await this.updateServiceViaSocket(info.ID, version, updatedSpec);
+      console.log(`[SwarmScaler] ✅ Successfully scaled '${info.Spec.Name}' to ${newReplicas} replicas.`);
       return true;
     } catch (err) {
-      console.error(`[SwarmScaler] ❌ Error updating service '${serviceSpec.Spec.Name}':`, err.message);
+      console.error(`[SwarmScaler] ❌ Error updating service '${serviceNamePattern}':`, err.message);
       return false;
     }
   }
 
-  // Evaluates scaling decisions with Hysteresis & Cooldown logic
-  async evaluateApiScaling({ rps, cpu, minReplicas = 2, maxReplicas = 15, highRpsPerNode = 250, highCpuPct = 70, lowRpsPerNode = 50, lowCpuPct = 30 }) {
+  // Evaluates API scaling
+  async evaluateApiScaling({ rps, cpu, minReplicas = 2, maxReplicas = 15, highRpsPerNode = 30, highCpuPct = 30, lowRpsPerNode = 10, lowCpuPct = 10 }) {
     if (this.isScaling) {
       console.log(`[SwarmScaler] Scaling operation currently in progress. Skipping tick.`);
       return;
@@ -78,14 +111,15 @@ class SwarmScaler {
       }
 
       const rpsPerNode = rps / currentReplicas;
-      const isHighLoad = cpu > highCpuPct || rpsPerNode > highRpsPerNode;
-      const isLowLoad = cpu < lowCpuPct && rpsPerNode < lowRpsPerNode;
+      const cpuPerNode = cpu / currentReplicas;
+      // High load triggers on RPS surge per node, or CPU surge when active traffic (RPS > 5) is present
+      const isHighLoad = rpsPerNode > highRpsPerNode || (rps > 5 && cpuPerNode > highCpuPct);
+      const isLowLoad = cpuPerNode < lowCpuPct && rpsPerNode < lowRpsPerNode;
 
-      console.log(`[SwarmScaler - API Metrics] Total RPS: ${rps.toFixed(1)}, Avg CPU: ${cpu.toFixed(1)}%, Replicas: ${currentReplicas}, RPS/Node: ${rpsPerNode.toFixed(1)}`);
+      console.log(`[SwarmScaler - API Metrics] Total RPS: ${rps.toFixed(1)}, CPU/Node: ${cpuPerNode.toFixed(1)}% (Total CPU: ${cpu.toFixed(1)}%), Replicas: ${currentReplicas}, RPS/Node: ${rpsPerNode.toFixed(1)}`);
 
       if (isHighLoad) {
-        // Instant Scale-Up Policy
-        this.cooldownTrackers.api.lowWatermarkTicks = 0; // Reset scale-down cooldown
+        this.cooldownTrackers.api.lowWatermarkTicks = 0;
         if (currentReplicas < maxReplicas) {
           const targetReplicas = Math.min(maxReplicas, currentReplicas + Math.max(2, Math.ceil(currentReplicas * 0.5)));
           console.log(`[SwarmScaler - High Load Detected] Triggering instant scale-up: ${currentReplicas} -> ${targetReplicas}`);
@@ -93,13 +127,12 @@ class SwarmScaler {
         } else {
           console.log(`[SwarmScaler - API At Max Replicas] Already at ceiling (${maxReplicas}).`);
         }
-      } else if (isLowLoad && currentReplicas > minReplicas) {
-        // Cooldown Scale-Down Policy
+      } else if (currentReplicas > minReplicas) {
         this.cooldownTrackers.api.lowWatermarkTicks += 1;
         const ticks = this.cooldownTrackers.api.lowWatermarkTicks;
         const required = this.cooldownTrackers.api.requiredTicksForScaleDown;
 
-        console.log(`[SwarmScaler - Low Load Detected] Cooldown tick ${ticks}/${required} before scale-down...`);
+        console.log(`[SwarmScaler - Low Load / Normal State] Cooldown tick ${ticks}/${required} before scale-down...`);
 
         if (ticks >= required) {
           const targetReplicas = Math.max(minReplicas, Math.floor(currentReplicas / 2));
@@ -108,7 +141,6 @@ class SwarmScaler {
           this.cooldownTrackers.api.lowWatermarkTicks = 0;
         }
       } else {
-        // Load within normal stable window
         this.cooldownTrackers.api.lowWatermarkTicks = 0;
       }
     } finally {

@@ -2,6 +2,11 @@ global:
   scrape_interval: 5s
   evaluation_interval: 5s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
 rule_files:
   - 'alert.rules.yml'
 
@@ -22,6 +27,7 @@ scrape_configs:
     dns_sd_configs:
       - names:
           - 'tasks.api'
+          - 'tasks.surgeshield_api'
         type: 'A'
         port: 3000
 
@@ -29,6 +35,7 @@ scrape_configs:
     dns_sd_configs:
       - names:
           - 'tasks.worker'
+          - 'tasks.surgeshield_worker'
         type: 'A'
         port: 3001
 

@@ -33,16 +33,18 @@ async function runScalingCycle() {
       lastCheckTime: new Date().toISOString()
     };
 
+    console.log(`[Autoscaler Tick ${lastMetrics.lastCheckTime}] RPS: ${rps.toFixed(1)} | CPU: ${cpu.toFixed(1)}% | Queue: ${queueDepth}`);
+
     // Evaluate API Scaling
     await scaler.evaluateApiScaling({
       rps,
       cpu,
       minReplicas: parseInt(process.env.MIN_API_REPLICAS || '2', 10),
       maxReplicas: parseInt(process.env.MAX_API_REPLICAS || '15', 10),
-      highRpsPerNode: parseFloat(process.env.HIGH_RPS_PER_NODE || '250'),
-      highCpuPct: parseFloat(process.env.HIGH_CPU_PCT || '70'),
-      lowRpsPerNode: parseFloat(process.env.LOW_RPS_PER_NODE || '50'),
-      lowCpuPct: parseFloat(process.env.LOW_CPU_PCT || '30')
+      highRpsPerNode: parseFloat(process.env.HIGH_RPS_PER_NODE || '30'),
+      highCpuPct: parseFloat(process.env.HIGH_CPU_PCT || '30'),
+      lowRpsPerNode: parseFloat(process.env.LOW_RPS_PER_NODE || '10'),
+      lowCpuPct: parseFloat(process.env.LOW_CPU_PCT || '10')
     });
 
     // Evaluate Worker Scaling

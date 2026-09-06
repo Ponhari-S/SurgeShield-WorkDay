@@ -15,8 +15,8 @@ class PrometheusClient {
       if (response.data && response.data.status === 'success') {
         const result = response.data.data.result;
         if (result && result.length > 0) {
-          // Parse single scalar or first series value
-          return parseFloat(result[0].value[1]) || 0;
+          const val = parseFloat(result[0].value[1]);
+          return isNaN(val) ? 0 : val;
         }
       }
       return 0;
@@ -28,26 +28,36 @@ class PrometheusClient {
 
   // Get total RPS for API service across Traefik or Express metrics
   async getApiRps() {
-    // Tries Traefik metric first, falls back to direct http_requests_total
-    const traefikQuery = 'sum(rate(traefik_service_requests_total{service=~".*api.*"}[30s]))';
-    let rps = await this.queryPromQL(traefikQuery);
-    if (rps === 0) {
-      const appQuery = 'sum(rate(http_requests_total[30s]))';
-      rps = await this.queryPromQL(appQuery);
+    const queries = [
+      'sum(rate(traefik_service_requests_total[30s]))',
+      'sum(rate(traefik_entrypoint_requests_total[30s]))',
+      'sum(rate(http_requests_total[30s]))'
+    ];
+
+    for (const q of queries) {
+      const rps = await this.queryPromQL(q);
+      if (rps > 0) {
+        return rps;
+      }
     }
-    return rps;
+    return 0;
   }
 
-  // Get average CPU percentage across API containers from cAdvisor or Node metrics
+  // Get CPU percentage across API containers
   async getApiCpuUsage() {
-    const cadvisorQuery = 'avg(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name=~".*api.*"}[1m])) * 100';
-    let cpu = await this.queryPromQL(cadvisorQuery);
-    if (cpu === 0) {
-      // Fallback metric if container label varies
-      const fallbackQuery = 'avg(rate(container_cpu_usage_seconds_total{image=~".*api.*"}[1m])) * 100';
-      cpu = await this.queryPromQL(fallbackQuery);
+    const queries = [
+      'avg(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name=~".*api.*"}[1m])) * 100',
+      'avg(rate(container_cpu_usage_seconds_total{name=~".*api.*"}[1m])) * 100',
+      'sum(rate(container_cpu_usage_seconds_total[1m])) * 100'
+    ];
+
+    for (const q of queries) {
+      const cpu = await this.queryPromQL(q);
+      if (cpu > 0) {
+        return cpu;
+      }
     }
-    return cpu;
+    return 0;
   }
 
   // Get queue depth for BullMQ / Worker scaling

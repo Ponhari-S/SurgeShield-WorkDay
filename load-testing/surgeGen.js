@@ -6,17 +6,19 @@ const profile = process.argv.includes('--profile')
   : 'burst';
 
 const durationSec = parseInt(process.env.DURATION || '30', 10);
-let rpsTarget = 150;
+let concurrency = 10;
+let intervalMs = 20;
 
 if (profile === 'cool') {
-  rpsTarget = 2;
-  console.log(`[SurgeGen] Running COOL profile: ${rpsTarget} RPS for ${durationSec}s to test scale-down cooldown path...`);
+  concurrency = 1;
+  intervalMs = 500;
+  console.log(`[SurgeGen] Running COOL profile: 2 RPS for ${durationSec}s to test scale-down cooldown path...`);
 } else if (profile === 'idempotency') {
   console.log(`[SurgeGen] Running IDEMPOTENCY test profile (10 identical requests)...`);
   runIdempotencyTest();
-  process.exit(0);
+  return;
 } else {
-  console.log(`[SurgeGen] Running BURST profile: ${rpsTarget} RPS for ${durationSec}s to trigger scale-up...`);
+  console.log(`[SurgeGen] Running BURST profile: High Concurrency for ${durationSec}s to trigger scale-up...`);
 }
 
 let totalSent = 0;
@@ -24,35 +26,34 @@ let totalSuccess = 0;
 let totalFailed = 0;
 const startTime = Date.now();
 
-async function sendRequest() {
-  totalSent++;
-  const idempotencyKey = `idemp-${Math.floor(Math.random() * 100000)}`;
-  try {
-    const res = await axios.post(TARGET_URL, {
-      eventId: 'evt-1',
-      userId: `user-${Math.floor(Math.random() * 5000)}`
-    }, {
-      headers: {
-        'X-Idempotency-Key': idempotencyKey,
-        'Content-Type': 'application/json'
-      },
-      timeout: 2000
-    });
-
-    if (res.status === 201 || res.status === 200) {
-      totalSuccess++;
-    } else {
-      totalFailed++;
-    }
-  } catch (err) {
-    totalFailed++;
+async function sendBatch() {
+  const promises = [];
+  for (let i = 0; i < concurrency; i++) {
+    totalSent++;
+    const idempotencyKey = `idemp-${Math.floor(Math.random() * 1000000)}`;
+    promises.push(
+      axios.post(TARGET_URL, {
+        eventId: 'evt-1',
+        userId: `user-${Math.floor(Math.random() * 10000)}`
+      }, {
+        headers: {
+          'X-Idempotency-Key': idempotencyKey,
+          'Content-Type': 'application/json'
+        },
+        timeout: 3000
+      }).then(res => {
+        if (res.status === 201 || res.status === 200) totalSuccess++;
+        else totalFailed++;
+      }).catch(() => {
+        totalFailed++;
+      })
+    );
   }
+  await Promise.all(promises);
 }
 
-// Spawns interval ticker for targeted RPS
-const intervalMs = 1000 / rpsTarget;
 const timer = setInterval(() => {
-  sendRequest();
+  sendBatch();
   const elapsedSec = (Date.now() - startTime) / 1000;
   if (elapsedSec >= durationSec) {
     clearInterval(timer);

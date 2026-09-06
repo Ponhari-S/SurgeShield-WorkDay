@@ -142,14 +142,16 @@ services:
       COOLDOWN_TICKS: 6
       MIN_API_REPLICAS: 2
       MAX_API_REPLICAS: 15
-      HIGH_RPS_PER_NODE: 250
+      HIGH_RPS_PER_NODE: 30
       HIGH_CPU_PCT: 70
-      LOW_RPS_PER_NODE: 50
-      LOW_CPU_PCT: 30
+      LOW_RPS_PER_NODE: 10
+      LOW_CPU_PCT: 40
       MIN_WORKER_REPLICAS: 1
       MAX_WORKER_REPLICAS: 10
       HIGH_QUEUE_DEPTH: 500
       LOW_QUEUE_DEPTH: 50
+    ports:
+      - "9091:9091"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -180,9 +182,12 @@ services:
   # ----------------------------------------------------
   prometheus:
     image: prom/prometheus:v2.51.0
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+      - source: prometheus_rules
+        target: /etc/prometheus/alert.rules.yml
     volumes:
-      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./observability/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
       - prometheus_data:/prometheus
     networks:
       - surgeshield_net
@@ -196,8 +201,9 @@ services:
   # ----------------------------------------------------
   alertmanager:
     image: prom/alertmanager:v0.27.0
-    volumes:
-      - ./observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    configs:
+      - source: alertmanager_config
+        target: /etc/alertmanager/alertmanager.yml
     networks:
       - surgeshield_net
     ports:
@@ -214,10 +220,14 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
+    configs:
+      - source: grafana_ds
+        target: /etc/grafana/provisioning/datasources/prometheus.yml
+      - source: grafana_db_provider
+        target: /etc/grafana/provisioning/dashboards/dashboards.yml
+      - source: grafana_db_json
+        target: /etc/grafana/provisioning/dashboards/json/surgeshield-overview.json
     volumes:
-      - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards/json
       - grafana_data:/var/lib/grafana
     ports:
       - "3001:3000"
@@ -225,3 +235,19 @@ services:
       - surgeshield_net
     deploy:
       replicas: 1
+
+configs:
+  prometheus_config:
+    file: ./observability/prometheus/prometheus.yml
+  prometheus_rules:
+    file: ./observability/prometheus/alert.rules.yml
+  alertmanager_config:
+    file: ./observability/alertmanager/alertmanager.yml
+  grafana_ds:
+    file: ./observability/grafana/provisioning/datasources/prometheus.yml
+  grafana_db_provider:
+    file: ./observability/grafana/provisioning/dashboards/dashboards.yml
+  grafana_db_json:
+    file: ./observability/grafana/dashboards/surgeshield-overview.json
+
+
