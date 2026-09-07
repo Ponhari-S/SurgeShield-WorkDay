@@ -39,7 +39,9 @@ async function createBooking({ eventId, userName, userEmail, seatIds, idempotenc
     );
 
     if (seatCheck.rows.length !== seatIds.length) {
-      throw new Error('One or more selected seats do not exist for this event');
+      const err = new Error('One or more selected seats do not exist for this event');
+      err.code = 'SEATS_UNAVAILABLE';
+      throw err;
     }
 
     const unavailable = seatCheck.rows.filter((s) => s.status !== 'available');

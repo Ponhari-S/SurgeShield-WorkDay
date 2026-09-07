@@ -73,4 +73,10 @@ async function getEventWithSeats(eventId) {
   return { ...eventResult.rows[0], seats: seatsResult.rows };
 }
 
-module.exports = { createEvent, listEvents, getEventWithSeats };
+async function resetEventSeats(eventId) {
+  await db.query(`UPDATE seats SET status = 'available', booking_id = NULL WHERE event_id = $1`, [eventId]);
+  await db.query(`DELETE FROM bookings WHERE event_id = $1`, [eventId]);
+  return { message: `Seats reset to available for event ${eventId}` };
+}
+
+module.exports = { createEvent, listEvents, getEventWithSeats, resetEventSeats };

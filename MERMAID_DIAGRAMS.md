@@ -27,20 +27,19 @@ This diagram presents the full microservices topology of SurgeShield, showcasing
 
 ```mermaid
 graph TD
-    subgraph Clients ["Traffic Generators & Clients"]
-        Users["Web / Mobile App Users"]
-        LoadGen["Load Generator (surgeGen.js)"]
+    subgraph Client ["Client"]
+        WebBrowser["Web Browser<br/>(Browse, Search, Book Seats, etc.)"]
     end
 
-    subgraph Ingress ["Ingress Tier"]
-        Traefik["Traefik Reverse Proxy & Load Balancer (Port 80/443)"]
+    subgraph IngressTier ["Ingress Tier"]
+        Traefik["Traefik Reverse Proxy & Load Balancer<br/>(Port 80/443)<br/>• SSL/TLS Termination<br/>• Round-Robin Load Balancing<br/>• Active Health Probes"]
     end
 
     subgraph SwarmCluster ["Docker Swarm Cluster"]
-        subgraph APITier ["API Service Tier (Node.js/Express)"]
+        subgraph APITier ["API Service Tier (Node.js / Express)"]
             API1["API Replica 1"]
             API2["API Replica 2"]
-            APIN["API Replica N (Auto-scaled)"]
+            APIN["API Replica N"]
         end
 
         subgraph DataTier ["Data & Caching Tier"]
@@ -48,46 +47,51 @@ graph TD
             Postgres[("PostgreSQL 16 DB<br/>• ACID Transactions<br/>• Row-level Locks (FOR UPDATE)<br/>• Transactional Outbox Table")]
         end
 
-        subgraph OutboxService ["Async Pipeline"]
-            Syncer["Outbox Syncer Poller<br/>(SKIP LOCKED)"]
-            BullMQ["BullMQ Queue ('notifications')"]
+        subgraph AsyncPipeline ["Async Pipeline"]
+            Syncer["Outbox Syncer Poller<br/>• Polls Outbox Table<br/>• (SKIP LOCKED)"]
+            BullMQ["BullMQ Queue<br/>('notifications')"]
             Worker1["Worker Replica 1"]
-            Worker2["Worker Replica N"]
+            Worker2["Worker Replica 2"]
+            WorkerN["Worker Replica N"]
+        end
+
+        subgraph ExternalServices ["External Services"]
+            Email["Email Service<br/>(Send Emails)"]
+            Calendar["Calendar Service<br/>(Create Calendar Invites)"]
+            SMS["SMS/Push Service<br/>(Send SMS / Push Notifications)"]
         end
     end
 
-    subgraph Observability ["Observability & Auto-Scaling Stack"]
-        cAdvisor["cAdvisor Engine"]
-        Prometheus["Prometheus Server (Port 9090)<br/>• RED Metrics Aggregator"]
-        Grafana["Grafana Dashboards (Port 3001)"]
-        Alertmanager["Alertmanager (Port 9093)"]
-        Autoscaler["Custom Swarm Autoscaler (Port 9091)<br/>• Evaluates PromQL metrics every 5s<br/>• Docker Engine Socket API"]
+    subgraph ObservabilityStack ["Observability & Auto-Scaling Stack"]
+        Autoscaler["Custom Swarm Autoscaler<br/>(Port 9091)<br/>• Evaluates PromQL metrics every 5s<br/>• Docker Engine Socket API"]
+        Prometheus["Prometheus Server<br/>(Port 9090)<br/>• RED Metrics Aggregator<br/>• Time Series Database"]
+        Grafana["Grafana<br/>(Port 3001)<br/>• Dashboards<br/>• Visualization"]
+        Alertmanager["Alertmanager<br/>(Port 9093)<br/>• Alerting Rules<br/>• Notifications (Email, Slack, etc.)"]
     end
 
-    %% Flow connections
-    Users --> Traefik
-    LoadGen --> Traefik
-    Traefik -->|"Round-Robin / Active Health Probe"| API1
-    Traefik --> API2
-    Traefik --> APIN
+    %% Client & Ingress
+    WebBrowser -->|"HTTP/HTTPS"| Traefik
+    Traefik --> API1 & API2 & APIN
 
+    %% API Tier Connections
     API1 & API2 & APIN -->|"Fast Lock / Idempotency"| Redis
     API1 & API2 & APIN -->|"SQL Queries & Transactions"| Postgres
 
-    Syncer -->|"Polls Outbox Table"| Postgres
+    %% Async Pipeline Connections
+    Postgres -->|"Outbox Events (poll from DB)"| Syncer
     Syncer -->|"Enqueues Notification Jobs"| BullMQ
-    BullMQ -->|"Pops Jobs"| Worker1 & Worker2
-    Worker1 & Worker2 -->|"Updates Outbox Status"| Postgres
+    BullMQ -->|"Pops Jobs"| Worker1 & Worker2 & WorkerN
+    Worker1 & Worker2 & WorkerN -->|"Calls External Services"| ExternalServices
 
-    API1 & API2 & APIN -->|"/metrics (RPS, Latency)"| Prometheus
-    Worker1 & Worker2 -->|"/metrics (Queue Depth)"| Prometheus
-    cAdvisor -->|"CPU / Memory Util"| Prometheus
-    Traefik -->|"Ingress Metrics"| Prometheus
+    %% Metrics Collection
+    API1 & API2 & APIN -.->|"API Metrics (RPS, Latency, Errors)"| Prometheus
+    Worker1 & Worker2 & WorkerN -.->|"Worker Metrics (Queue Depth, Processing Time)"| Prometheus
+    Traefik -.->|"Ingress Metrics (Traefik)"| Prometheus
+    DataTier -.->|"Container Metrics (CPU / Memory - cAdvisor)"| Prometheus
 
-    Autoscaler -->|"Queries PromQL Metrics"| Prometheus
-    Autoscaler -->|"Control Replicas via /var/run/docker.sock"| APITier
-    Autoscaler -->|"Control Worker Replicas"| OutboxService
-
+    %% Autoscaler & Observability Control
+    Prometheus -->|"Queries PromQL Metrics"| Autoscaler
+    Autoscaler -.->|"Control Replicas via /var/run/docker.sock"| APITier & AsyncPipeline
     Prometheus --> Grafana
     Prometheus --> Alertmanager
 ```

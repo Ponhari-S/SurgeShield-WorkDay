@@ -44,6 +44,7 @@ services:
   # ----------------------------------------------------
   postgres:
     image: postgres:16-alpine
+    command: postgres -c max_connections=300
     environment:
       POSTGRES_DB: surgeshield_db
       POSTGRES_USER: surgeshield
@@ -94,6 +95,8 @@ services:
       PORT: 3000
       DATABASE_URL: postgres://surgeshield:surgeshield_pass@postgres:5432/surgeshield_db
       REDIS_URL: redis://redis:6379
+      DB_POOL_MAX: 5
+      DB_TIMEOUT_MS: 5000
     networks:
       - surgeshield_net
     deploy:

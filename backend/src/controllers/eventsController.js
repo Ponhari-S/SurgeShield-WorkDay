@@ -48,4 +48,14 @@ async function getEvent(req, res, next) {
   }
 }
 
-module.exports = { createEvent, listEvents, getEvent };
+async function resetEvent(req, res, next) {
+  try {
+    const eventId = parseInt(req.params.id || 1, 10);
+    const result = await eventService.resetEventSeats(eventId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { createEvent, listEvents, getEvent, resetEvent };

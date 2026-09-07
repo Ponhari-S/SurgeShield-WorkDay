@@ -5,7 +5,7 @@ async function createBooking(req, res, next) {
     const { eventId, userName, userEmail, seatIds, userId } = req.body;
     const idempotencyKey = req.headers['x-idempotency-key'] || null;
 
-    const parsedEventId = parseInt(eventId || 1, 10);
+    const parsedEventId = parseInt(String(eventId || 1).replace(/\D/g, '') || '1', 10);
     const finalUserName = userName || userId || `user-${Date.now()}`;
     const finalUserEmail = userEmail || `${finalUserName}@surgeshield.io`;
     const finalSeatIds = (Array.isArray(seatIds) && seatIds.length > 0) 

@@ -6,6 +6,8 @@ require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgres://surgeshield:surgeshield_pass@localhost:5432/surgeshield_db',
+  max: parseInt(process.env.DB_POOL_MAX || '20', 10),
+  connectionTimeoutMillis: parseInt(process.env.DB_TIMEOUT_MS || '5000', 10),
   // SSL is disabled by default for local/Docker container Postgres. Set DB_SSL=true if connecting to a remote TLS DB.
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
@@ -23,6 +25,8 @@ async function initSchema() {
     if (fs.existsSync(schemaPath)) {
       const sql = fs.readFileSync(schemaPath, 'utf8');
       await pool.query(sql);
+      // Ensure idempotency_key column exists on pre-existing bookings table
+      await pool.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS idempotency_key VARCHAR(255) UNIQUE;');
       console.log('[DB Schema] Tables and indexes verified/migrated successfully.');
 
       // Seed a default event & seats if table is empty
